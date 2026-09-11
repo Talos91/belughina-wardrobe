@@ -7,11 +7,11 @@ The public [GitHub repository](https://github.com/Talos91/belughina-wardrobe) de
 ## Included
 
 - All 19 models, 17 clothing/accessory pieces, and the six new rooms.
-- Direct category tabs, clear wearing indicators, a mobile expanded picker, and a labeled color sheet.
+- Illustrated paper folio, stacked Tops and Bottoms, stitched selection tabs, undo, and a mobile drawer that reframes the scene.
 - Consistent top fits, a softened cream halter, a fitted black halter, and clean Moonlight lining rendering.
-- Three held poses, crossed fins in Relaxed, four varied outfit reactions, and seamless returns after actions.
+- Three held poses, a softer Relaxed fin tuck, seven one-shot actions, four outfit reactions, and seamless returns after actions.
 - Salami’s spawn/drop, rotating greeting lines, and the complete keepsake letter, permanently unlocked in that browser.
-- Saved looks and photo export. Progress is local to each browser/device.
+- Saved looks with actual scene thumbnails, stored poses, rename/delete, and portrait/landscape photo capture. Progress is local to each browser/device.
 
 The main character downloads at 7.2 MiB. Other clothes and rooms load when selected. Full-quality Blender sources and original exports remain outside the publishing repository.
 

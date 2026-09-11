@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import {attachMoonlightDress,installRibbonColors} from './moonlight-dress.js?v=wardrobe-clear-15';
-import {SkirtDynamics} from './skirt-dynamics.js?v=wardrobe-clear-15';
-import {activeItems} from './wardrobe-state.js?v=wardrobe-clear-15';
+import {attachMoonlightDress,installRibbonColors} from './moonlight-dress.js?v=folio-release-3';
+import {SkirtDynamics} from './skirt-dynamics.js?v=folio-release-3';
+import {activeItems} from './wardrobe-state.js?v=folio-release-3';
 
 // CPU counterpart of the concealed torso insert, also used by picking and
 // attachment checks. Exposed neck/shoulders, flippers and flukes are unchanged.
@@ -30,7 +30,7 @@ export class WardrobeAssets{
   if(this.loaded.has(id))return this.loaded.get(id);
   if(this.pending.has(id))return this.pending.get(id);
   const task=(async()=>{
-   const file=await this.loader.loadAsync(`./assets/models/${id}.glb?v=wardrobe-clear-15`);
+   const file=await this.loader.loadAsync(`./assets/models/${id}.glb?v=folio-release-3`);
    const meshes=attachMoonlightDress(this.character,file.scene,'Wardrobe_'+id);
    // A crossed fluke sits underneath the outfit. Long hems hang from the
    // shared tail stem instead of curling inward with each separate tip.
@@ -124,9 +124,9 @@ function installBottomLayer(meshes){
    shader.vertexShader='varying float vBottomHeight;\n'+shader.vertexShader;
    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvBottomHeight=position.y;');
    shader.fragmentShader='uniform float bottomUnderShirt;\nvarying float vBottomHeight;\n'+shader.fragmentShader;
-   shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nif(bottomUnderShirt>.5&&vBottomHeight>(bottomUnderShirt>2.5?1.79:(bottomUnderShirt>1.5?1.70:1.80)))discard;');
+   shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nif(bottomUnderShirt>.5&&vBottomHeight>(bottomUnderShirt>1.5?1.70:1.80))discard;');
   };
-  material.customProgramCacheKey=()=>key+'|bottom-layer-3';material.needsUpdate=true;
+  material.customProgramCacheKey=()=>key+'|bottom-layer-4';material.needsUpdate=true;
  }
  return tucked;
 }
@@ -183,14 +183,16 @@ export function installWardrobeCoverage(character){
       if(wardrobeTop>.5&&wardrobeTop<2.5&&torso&&wy>1.64&&wy<topNeck&&!openHalter)discard;
       // Only the closed waistband of the deep-V halter conceals the skin.
       // Its chest and back remain real, fitted body surfaces.
-      if(wardrobeTop>2.5&&torso&&wy>1.76&&wy<1.96)discard;
+      if(wardrobeTop>2.5&&torso&&wy>1.62&&wy<1.96)discard;
       float sleeveLength=(wx-.40)*.69+(2.59-wy)*.72;
 
-      float bottomHem=wardrobeBottom<1.5?.98:(wardrobeBottom<2.5?.78:.24);
+      // Flukes remain intact; the skirt itself occludes them. A rest-height
+      // cutoff through a posed fin produces the triangular missing pieces.
+      float bottomHem=wardrobeBottom<1.5?.98:.80;
       if(wardrobeBottom>.5&&torso&&wy<1.83&&wy>bottomHem)discard;
     `);
    };
-   material.customProgramCacheKey=()=>key+'|wardrobe-coverage-8';material.needsUpdate=true;
+   material.customProgramCacheKey=()=>key+'|wardrobe-coverage-9';material.needsUpdate=true;
   }
  });
  return {set(ids){dress.value=ids.has('moonlight')?1:ids.has('pink')?2:ids.has('floral')?3:ids.has('bloom')?4:0;top.value=ids.has('stripe')?1:ids.has('halter')?2:ids.has('noir')?3:0;hat.value=ids.has('hat')?1:0;bottom.value=ids.has('shorts')?1:ids.has('trousers')?2:ids.has('satin')?3:0}};

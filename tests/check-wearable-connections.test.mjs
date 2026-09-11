@@ -29,8 +29,8 @@ for(const id of ['pink','bloom','halter','tote']){
  }
  assert(pairs.length>0,id+' has no attachment samples');
  let maxGap=0,maxDrift=0,maxSkinChange=0;
- for(let f=0;f<420;f++){
-  if(f===0)motion.play('wave');if(f===120)motion.play('twirl');if(f===310)motion.play('wiggle');
+ for(let f=0;f<980;f++){
+  if(f===0)motion.play('wave');if(f===120)motion.play('twirl');if(f===310)motion.play('wiggle');if(f===430)motion.play('dance');if(f===610)motion.play('love');if(f===790)motion.play('camera');
   motion.update(1/60);ground.update(motion);wardrobe.update(1/60,motion);
   if(f%6)continue;
   for(const pair of pairs){const d=pos(pair.a,a).distanceTo(pos(pair.b,b));maxGap=Math.max(maxGap,d);maxDrift=Math.max(maxDrift,Math.abs(d-pair.rest));}

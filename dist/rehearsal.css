@@ -117,3 +117,24 @@ dialog.color-panel:not([open]){display:none}.color-panel .dialog-heading{margin-
  .stage,body:has(.glasses-position:not([hidden])) .stage{left:300px;right:8px;top:44px;bottom:101px}.rotate-hint{font-size:11px;left:0;right:0;bottom:0}.performance-panel{left:302px;right:10px;bottom:10px;height:86px;padding:32px 8px 6px;gap:0;overflow:visible}.poses{flex:0 0 198px;padding-right:10px}.actions{flex:0 0 284px}.performance-panel h2{font-size:12px;margin-bottom:3px}.pose-buttons button,.action-tray button{height:48px;font-size:12px;gap:2px}.performance-panel button .icon{width:20px;height:20px}
  .save-look,body:has(.glasses-position:not([hidden])) .save-look{right:12px;bottom:103px;width:108px;height:36px;font-size:13px}.photo,body:has(.glasses-position:not([hidden])) .photo{right:130px;bottom:103px;width:36px;height:36px}.summon-salami{top:54px;right:12px;bottom:auto;font-size:12px;padding:8px 11px}.color-panel,.wardrobe:has(.glasses-position:not([hidden])) .color-panel{left:calc(100% + 8px);bottom:0}.glasses-position{padding:6px 0 0}.glasses-position button{font-size:12px;min-height:30px;padding:4px 8px}
 }
+
+/* Seven actions stay visible, with a second row instead of tiny targets. */
+.action-tray{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+@media(min-width:761px) and (min-height:501px){
+ .performance-panel{height:170px}.stage{bottom:212px}.action-tray button{height:54px;font-size:12px;gap:3px}.pose-buttons button{height:114px}.summon-salami{bottom:224px}
+}
+@media(max-width:760px){
+ body{--action-extra:0px}body:has(.performance-panel[data-mode=actions]){--action-extra:54px}
+ .performance-panel{height:calc(86px + var(--action-extra))}.action-tray{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.action-tray button{height:48px;font-size:12px}
+ .wardrobe,.wardrobe:has(.glasses-position:not([hidden])){bottom:calc(102px + var(--action-extra) + env(safe-area-inset-bottom))}
+ .tabs,body:has(.glasses-position:not([hidden])) .tabs{bottom:calc(43px + var(--picker-size) + var(--action-extra) + env(safe-area-inset-bottom))}
+ .stage,body:has(.glasses-position:not([hidden])) .stage{bottom:calc(116px + var(--picker-base) + var(--action-extra) + env(safe-area-inset-bottom))}
+ .save-look,.photo,body:has(.glasses-position:not([hidden])) .save-look,body:has(.glasses-position:not([hidden])) .photo{bottom:calc(112px + var(--picker-base) + var(--action-extra) + env(safe-area-inset-bottom))}
+}
+@media(min-width:641px) and (max-height:500px){
+ .performance-panel[data-mode=actions]{height:140px}.action-tray button{height:48px}
+ body:has(.performance-panel[data-mode=actions]) .stage{bottom:161px}
+ body:has(.performance-panel[data-mode=actions]) .save-look,body:has(.performance-panel[data-mode=actions]) .photo{bottom:157px}
+ .wardrobe,.wardrobe:has(.glasses-position:not([hidden])){bottom:10px}
+ .tabs,body:has(.glasses-position:not([hidden])) .tabs{bottom:auto}
+}

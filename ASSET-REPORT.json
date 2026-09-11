@@ -107,7 +107,7 @@
     {
       "file": "noir.glb",
       "beforeBytes": 10026316,
-      "afterBytes": 2239908,
+      "afterBytes": 2240660,
       "before": {
         "vertices": 46540,
         "triangles": 44999
@@ -159,7 +159,7 @@
     {
       "file": "scarf.glb",
       "beforeBytes": 14504572,
-      "afterBytes": 3463600,
+      "afterBytes": 3507932,
       "before": {
         "vertices": 19714,
         "triangles": 34929

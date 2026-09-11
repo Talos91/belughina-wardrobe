@@ -29,7 +29,11 @@ for(const bottom of ['shorts','trousers','satin']){
 }
 assert(await wardrobe.apply({...DEFAULT_STATE,top:'halter',extras:[]}));
 assert(wardrobe.loaded.get('halter').meshes.every(mesh=>mesh.material.side===FrontSide),'Cream lining must not render backwards through the cups');
+const hem=id=>Math.min(...wardrobe.loaded.get(id).meshes.flatMap(mesh=>{const p=mesh.geometry.attributes.position;return Array.from({length:p.count},(_,i)=>p.getY(i))}));
+assert(Math.abs(hem('noir')-hem('halter'))<.012,'Black waistband must finish at the same hem as the cream halter');
 assert(await wardrobe.apply({...DEFAULT_STATE,outfit:'moonlight',extras:[]}));
 assert(wardrobe.loaded.get('moonlight').meshes.every(mesh=>mesh.material.side===FrontSide),'Moonlight lining must not render backwards through the outer shell');
 for(const [old,newRoom] of Object.entries({atelier:'bedroom',seaside:'resort',greenhouse:'villa',moonlit:'starlight',scrapbook:'bedroom',pastel:'starlight',tuscany:'villa'}))assert.equal(sanitizeState({...DEFAULT_STATE,place:old}).place,newRoom);
+assert.equal(sanitizeState({...DEFAULT_STATE,pose:'tada'}).pose,'tada');
+assert.equal(sanitizeState({...DEFAULT_STATE,pose:'camera'}).pose,'relaxed','Only persistent poses belong in saved looks');
 console.log('PASS: all three bottoms retain the shirt silhouette under the black halter; Moonlight shell rendering and saved-room migration.');

@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import {expressiveClips} from './expressive-clips.js?v=wardrobe-clear-15';
+import {expressiveClips} from './expressive-clips.js?v=folio-release-3';
 
 const ease=t=>{t=THREE.MathUtils.clamp(t,0,1);return t*t*(3-2*t)};
-const CLIP_NAMES={wave:'Wave',wiggle:'Wiggle',kiss:'Kiss',boop:'Boop',pose:'Pose',delight:'DressDelight',reveal:'DressReveal',confident:'DressConfident',flourish:'DressFlourish',twirl:'Twirl'};
+const CLIP_NAMES={wave:'Wave',wiggle:'Wiggle',kiss:'Kiss',boop:'Boop',pose:'Pose',delight:'DressDelight',reveal:'DressReveal',confident:'DressConfident',flourish:'DressFlourish',twirl:'Twirl',dance:'HappyDance',love:'SoLoved',camera:'CameraPose'};
 
 /** Plays the authored rig clips while keeping the idle clock running underneath. */
 export class CharacterMotion {
@@ -100,6 +100,8 @@ export class CharacterMotion {
         if(!layer.signalled&&layer.type==='boop'&&layer.age>=.1){layer.signalled=true;this.blinkStart=this.time;}
         if(!layer.signalled&&layer.type==='delight'&&layer.age>=1.3){layer.signalled=true;this.blinkStart=this.time;}
         if(!layer.signalled&&layer.type==='reveal'&&layer.age>=1.5){layer.signalled=true;this.onSignal('reveal');}
+        if(!layer.signalled&&layer.type==='love'&&layer.age>=1.7){layer.signalled=true;this.onSignal('kiss');}
+        if(!layer.signalled&&layer.type==='camera'&&layer.age>=3.4){layer.signalled=true;this.onSignal('reveal');}
       }
       total+=layer.weight;
     }
@@ -144,6 +146,11 @@ export class CharacterMotion {
       smile+=.9*e;
       mouth+=(.50+.32*Math.sin(layer.age*Math.PI*2*1.8))*e;
       happyEyes+=(.55+.16*Math.sin(layer.age*Math.PI*2*.55))*e;
+    }
+    for(const layer of this.layers)if(['dance','love','camera'].includes(layer.type)){
+      const e=ease(layer.age/.65)*ease((layer.clip.duration-layer.age)/.8)*layer.weight/normalization*this.amplitude;
+      smile+=(layer.type==='love'?.85:.68)*e;
+      happyEyes+=(layer.type==='camera'?.20:.94)*e;
     }
     for(const mesh of this.faces)for(const [name,value] of Object.entries({Blink_L:Math.max(closure,happyEyes),Blink_R:Math.max(closure,happyEyes),HappySmile:smile,MouthPurr:mouth})) {
       const index=mesh.morphTargetDictionary[name];
