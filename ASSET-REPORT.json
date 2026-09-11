@@ -1,0 +1,318 @@
+{
+  "models": [
+    {
+      "file": "beluga.glb",
+      "beforeBytes": 56294432,
+      "afterBytes": 7592384,
+      "before": {
+        "vertices": 636943,
+        "triangles": 1051716
+      },
+      "after": {
+        "vertices": 238870,
+        "triangles": 295181
+      }
+    },
+    {
+      "file": "bloom.glb",
+      "beforeBytes": 10943040,
+      "afterBytes": 1918380,
+      "before": {
+        "vertices": 20443,
+        "triangles": 34845
+      },
+      "after": {
+        "vertices": 20443,
+        "triangles": 34845
+      }
+    },
+    {
+      "file": "crown.glb",
+      "beforeBytes": 12655460,
+      "afterBytes": 2807876,
+      "before": {
+        "vertices": 66220,
+        "triangles": 55000
+      },
+      "after": {
+        "vertices": 66220,
+        "triangles": 55000
+      }
+    },
+    {
+      "file": "earrings.glb",
+      "beforeBytes": 13921116,
+      "afterBytes": 2659160,
+      "before": {
+        "vertices": 45552,
+        "triangles": 33893
+      },
+      "after": {
+        "vertices": 45552,
+        "triangles": 33893
+      }
+    },
+    {
+      "file": "floral.glb",
+      "beforeBytes": 14015648,
+      "afterBytes": 2679736,
+      "before": {
+        "vertices": 18774,
+        "triangles": 32898
+      },
+      "after": {
+        "vertices": 18774,
+        "triangles": 32898
+      }
+    },
+    {
+      "file": "halter.glb",
+      "beforeBytes": 10861720,
+      "afterBytes": 1390792,
+      "before": {
+        "vertices": 18164,
+        "triangles": 33499
+      },
+      "after": {
+        "vertices": 18164,
+        "triangles": 33499
+      }
+    },
+    {
+      "file": "hat.glb",
+      "beforeBytes": 15249060,
+      "afterBytes": 2507348,
+      "before": {
+        "vertices": 15488,
+        "triangles": 28694
+      },
+      "after": {
+        "vertices": 15488,
+        "triangles": 28694
+      }
+    },
+    {
+      "file": "moonlight.glb",
+      "beforeBytes": 12701872,
+      "afterBytes": 2721372,
+      "before": {
+        "vertices": 24473,
+        "triangles": 38141
+      },
+      "after": {
+        "vertices": 24473,
+        "triangles": 38141
+      }
+    },
+    {
+      "file": "noir.glb",
+      "beforeBytes": 10026000,
+      "afterBytes": 2248320,
+      "before": {
+        "vertices": 46534,
+        "triangles": 44999
+      },
+      "after": {
+        "vertices": 46534,
+        "triangles": 44999
+      }
+    },
+    {
+      "file": "pink.glb",
+      "beforeBytes": 13245264,
+      "afterBytes": 2887816,
+      "before": {
+        "vertices": 46819,
+        "triangles": 78325
+      },
+      "after": {
+        "vertices": 46819,
+        "triangles": 78325
+      }
+    },
+    {
+      "file": "salami.glb",
+      "beforeBytes": 7111824,
+      "afterBytes": 3802620,
+      "before": {
+        "vertices": 66491,
+        "triangles": 60000
+      },
+      "after": {
+        "vertices": 66491,
+        "triangles": 60000
+      }
+    },
+    {
+      "file": "satin.glb",
+      "beforeBytes": 9855876,
+      "afterBytes": 2517264,
+      "before": {
+        "vertices": 37179,
+        "triangles": 44999
+      },
+      "after": {
+        "vertices": 37179,
+        "triangles": 44999
+      }
+    },
+    {
+      "file": "scarf.glb",
+      "beforeBytes": 14504568,
+      "afterBytes": 3490528,
+      "before": {
+        "vertices": 19714,
+        "triangles": 34929
+      },
+      "after": {
+        "vertices": 19714,
+        "triangles": 34929
+      }
+    },
+    {
+      "file": "shorts.glb",
+      "beforeBytes": 9971324,
+      "afterBytes": 1931760,
+      "before": {
+        "vertices": 18304,
+        "triangles": 34108
+      },
+      "after": {
+        "vertices": 18304,
+        "triangles": 34108
+      }
+    },
+    {
+      "file": "stripe.glb",
+      "beforeBytes": 10161648,
+      "afterBytes": 1858996,
+      "before": {
+        "vertices": 18008,
+        "triangles": 32887
+      },
+      "after": {
+        "vertices": 18008,
+        "triangles": 32887
+      }
+    },
+    {
+      "file": "sunglasses.glb",
+      "beforeBytes": 510248,
+      "afterBytes": 195956,
+      "before": {
+        "vertices": 5811,
+        "triangles": 9896
+      },
+      "after": {
+        "vertices": 5811,
+        "triangles": 9896
+      }
+    },
+    {
+      "file": "tote.glb",
+      "beforeBytes": 17730996,
+      "afterBytes": 3360956,
+      "before": {
+        "vertices": 25384,
+        "triangles": 47842
+      },
+      "after": {
+        "vertices": 25384,
+        "triangles": 47842
+      }
+    },
+    {
+      "file": "trousers.glb",
+      "beforeBytes": 10552968,
+      "afterBytes": 2173884,
+      "before": {
+        "vertices": 16788,
+        "triangles": 30799
+      },
+      "after": {
+        "vertices": 16788,
+        "triangles": 30799
+      }
+    },
+    {
+      "file": "wrap.glb",
+      "beforeBytes": 22177636,
+      "afterBytes": 7601784,
+      "before": {
+        "vertices": 21941,
+        "triangles": 36774
+      },
+      "after": {
+        "vertices": 21941,
+        "triangles": 36774
+      }
+    }
+  ],
+  "backgrounds": [
+    {
+      "file": "atelier.png",
+      "beforeBytes": 2140573,
+      "afterBytes": 240760
+    },
+    {
+      "file": "bedroom.png",
+      "beforeBytes": 2247812,
+      "afterBytes": 256558
+    },
+    {
+      "file": "cafe.png",
+      "beforeBytes": 2321847,
+      "afterBytes": 275100
+    },
+    {
+      "file": "greenhouse.png",
+      "beforeBytes": 2908532,
+      "afterBytes": 486568
+    },
+    {
+      "file": "manor.png",
+      "beforeBytes": 2345518,
+      "afterBytes": 305718
+    },
+    {
+      "file": "moonlit.png",
+      "beforeBytes": 2331502,
+      "afterBytes": 305878
+    },
+    {
+      "file": "pastel.png",
+      "beforeBytes": 2310591,
+      "afterBytes": 288444
+    },
+    {
+      "file": "resort.png",
+      "beforeBytes": 2334486,
+      "afterBytes": 289114
+    },
+    {
+      "file": "scrapbook.png",
+      "beforeBytes": 2346121,
+      "afterBytes": 301112
+    },
+    {
+      "file": "seaside.png",
+      "beforeBytes": 2376874,
+      "afterBytes": 315874
+    },
+    {
+      "file": "starlight.png",
+      "beforeBytes": 2180712,
+      "afterBytes": 218692
+    },
+    {
+      "file": "tuscany.png",
+      "beforeBytes": 2895684,
+      "afterBytes": 493216
+    },
+    {
+      "file": "villa.png",
+      "beforeBytes": 2557011,
+      "afterBytes": 350244
+    }
+  ]
+}

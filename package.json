@@ -1,1 +1,18 @@
-{"name":"belugas-little-wardrobe","private":true,"type":"module","version":"0.1.0"}
+{
+  "name": "belughina-wardrobe",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node scripts/check.mjs",
+    "optimize-assets": "node scripts/optimize-assets.mjs"
+  },
+  "engines": {"node": ">=22"},
+  "devDependencies": {
+    "@gltf-transform/core": "4.3.0",
+    "@gltf-transform/extensions": "4.3.0",
+    "@gltf-transform/functions": "4.3.0",
+    "meshoptimizer": "0.24.0",
+    "sharp": "0.35.4"
+  }
+}
