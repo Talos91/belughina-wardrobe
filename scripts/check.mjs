@@ -22,8 +22,8 @@ for(const id of ['beluga','salami',...[...DRESSES,...CLOTHES,...EXTRAS].map(i=>i
  const j=JSON.parse(b.subarray(20,20+b.readUInt32LE(12)));assert(j.extensionsRequired.includes('EXT_meshopt_compression'));
  assert(b.length<25*1024*1024,`${id}: unexpectedly large model`);
 }
-assert.equal(PLACES.length,13);
+assert.equal(PLACES.length,6);
 for(const p of PLACES){assert(fs.existsSync(`dist/assets/backgrounds/${p.id}.webp`));assert(fs.existsSync(`dist/assets/thumbnails/room-${p.id}.webp`));}
 assert(files.reduce((n,f)=>n+fs.statSync(f).size,0)<150*1024*1024,'Release unexpectedly exceeds 150 MiB');
 for(const test of fs.readdirSync('tests').filter(f=>f.endsWith('.test.mjs')))check(['--no-warnings','--loader','./tests/resolve-three.mjs','tests/'+test]);
-console.log('PASS: release paths, 19 models, 13 rooms, syntax, motion, layers, Salami, and letter.');
+console.log('PASS: release paths, 19 models, 6 rooms, syntax, motion, layers, Salami, and letter.');

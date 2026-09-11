@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import {attachMoonlightDress,installRibbonColors} from './moonlight-dress.js?v=gift-web-1';
-import {SkirtDynamics} from './skirt-dynamics.js?v=gift-web-1';
-import {activeItems} from './wardrobe-state.js?v=gift-web-1';
+import {attachMoonlightDress,installRibbonColors} from './moonlight-dress.js?v=wardrobe-clear-15';
+import {SkirtDynamics} from './skirt-dynamics.js?v=wardrobe-clear-15';
+import {activeItems} from './wardrobe-state.js?v=wardrobe-clear-15';
 
 // CPU counterpart of the concealed torso insert, also used by picking and
 // attachment checks. Exposed neck/shoulders, flippers and flukes are unchanged.
@@ -30,12 +30,23 @@ export class WardrobeAssets{
   if(this.loaded.has(id))return this.loaded.get(id);
   if(this.pending.has(id))return this.pending.get(id);
   const task=(async()=>{
-   const file=await this.loader.loadAsync(`./assets/models/${id}.glb?v=gift-web-1`);
+   const file=await this.loader.loadAsync(`./assets/models/${id}.glb?v=wardrobe-clear-15`);
    const meshes=attachMoonlightDress(this.character,file.scene,'Wardrobe_'+id);
+   // A crossed fluke sits underneath the outfit. Long hems hang from the
+   // shared tail stem instead of curling inward with each separate tip.
+   for(const mesh of meshes){
+    const tail=mesh.skeleton.bones.findIndex(b=>b.name==='Tail');
+    const flukes=new Set(mesh.skeleton.bones.map((b,i)=>/^Tail[LR]$/.test(b.name)?i:-1));
+    const indices=mesh.geometry.attributes.skinIndex;
+    if(tail<0||!indices)continue;
+    for(let i=0;i<indices.count;i++)for(let j=0;j<4;j++)if(flukes.has(indices.getComponent(i,j)))indices.setComponent(i,j,tail);
+    indices.needsUpdate=true;
+   }
+
    const originals=new Map();for(const mesh of meshes){mesh.visible=false;for(const m of Array.isArray(mesh.material)?mesh.material:[mesh.material])originals.set(m,m.color.clone());}
    // The scarf already includes its lining. Rendering both sides of each
    // shell lets the white underside show through its overlapping folds.
-   if(id==='scarf')for(const mesh of meshes)mesh.material.side=THREE.FrontSide;
+   if(id==='scarf'||id==='halter')for(const mesh of meshes)mesh.material.side=THREE.FrontSide;
    const colors=id==='moonlight'?installRibbonColors(meshes):null;
    const tucked=['shorts','trousers','satin'].includes(id)?installBottomLayer(meshes):null;
    const strength={moonlight:1,pink:.85,floral:.75,bloom:.8,wrap:.16,trousers:.22,satin:.48,scarf:.16}[id];
@@ -134,7 +145,7 @@ export function installWardrobeCoverage(character){
   mesh.geometry.setAttribute('wardrobeArm',new THREE.BufferAttribute(weights,1));
   mesh.getVertexPosition=function(index,target){
    THREE.Mesh.prototype.getVertexPosition.call(this,index,target);
-   fitWardrobeSkin(target,weights[index],dress.value>.5||(top.value>.5&&top.value<2.5),bottom.value>.5&&top.value<.5,top.value>1.5&&top.value<2.5);
+   fitWardrobeSkin(target,weights[index],dress.value>.5||top.value>.5,bottom.value>.5&&top.value<.5,top.value>1.5&&top.value<2.5);
    return this.applyBoneTransform(index,target);
   };
   for(const material of Array.isArray(mesh.material)?mesh.material:[mesh.material]){
@@ -147,7 +158,7 @@ export function installWardrobeCoverage(character){
      vWardrobeRest=position;vWardrobeArm=wardrobeArm;
      // Clothing never rescales the exposed neck, shoulders or flippers.
      // The small concealed torso insert blends out fully below the neckline.
-     if((wardrobeTop>.5&&wardrobeTop<2.5)||wardrobeDress>.5){
+     if(wardrobeTop>.5||wardrobeDress>.5){
       float inset=smoothstep(.80,1.60,position.y)*(1.-smoothstep(2.03,2.35,position.y))*(1.-smoothstep(.08,.30,wardrobeArm));
       if(wardrobeTop>1.5&&wardrobeTop<2.5)inset*=1.-smoothstep(.08,.14,position.z)*smoothstep(2.14+abs(position.x)*1.5,2.18+abs(position.x)*1.5,position.y);
       transformed.x*=1.-.24*inset;
@@ -165,15 +176,21 @@ export function installWardrobeCoverage(character){
       float dressHem=.72;
       if(wardrobeDress>.5&&torso&&wy>dressHem&&wy<neck)discard;
       float topNeck=wardrobeTop<1.5?2.26:(vWardrobeRest.z>.08?2.03+(.19+min(wx,.32)*.92)*(1.-smoothstep(.22,.31,wx)):2.03);
+      // The softened cups cover the front torso up to their V boundary.
+      // Preserve the real skin inside that V and above the armholes.
+      if(wardrobeTop>1.5&&wardrobeTop<2.5&&vWardrobeRest.z>.08)topNeck=max(topNeck,2.28);
       bool openHalter=wardrobeTop>1.5&&vWardrobeRest.z>.08&&wy>2.14+wx*1.5;
       if(wardrobeTop>.5&&wardrobeTop<2.5&&torso&&wy>1.64&&wy<topNeck&&!openHalter)discard;
+      // Only the closed waistband of the deep-V halter conceals the skin.
+      // Its chest and back remain real, fitted body surfaces.
+      if(wardrobeTop>2.5&&torso&&wy>1.76&&wy<1.96)discard;
       float sleeveLength=(wx-.40)*.69+(2.59-wy)*.72;
 
       float bottomHem=wardrobeBottom<1.5?.98:(wardrobeBottom<2.5?.78:.24);
       if(wardrobeBottom>.5&&torso&&wy<1.83&&wy>bottomHem)discard;
     `);
    };
-   material.customProgramCacheKey=()=>key+'|wardrobe-coverage-6';material.needsUpdate=true;
+   material.customProgramCacheKey=()=>key+'|wardrobe-coverage-8';material.needsUpdate=true;
   }
  });
  return {set(ids){dress.value=ids.has('moonlight')?1:ids.has('pink')?2:ids.has('floral')?3:ids.has('bloom')?4:0;top.value=ids.has('stripe')?1:ids.has('halter')?2:ids.has('noir')?3:0;hat.value=ids.has('hat')?1:0;bottom.value=ids.has('shorts')?1:ids.has('trousers')?2:ids.has('satin')?3:0}};

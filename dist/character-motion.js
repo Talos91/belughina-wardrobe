@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {expressiveClips} from './expressive-clips.js?v=gift-web-1';
+import {expressiveClips} from './expressive-clips.js?v=wardrobe-clear-15';
 
 const ease=t=>{t=THREE.MathUtils.clamp(t,0,1);return t*t*(3-2*t)};
 const CLIP_NAMES={wave:'Wave',wiggle:'Wiggle',kiss:'Kiss',boop:'Boop',pose:'Pose',delight:'DressDelight',reveal:'DressReveal',confident:'DressConfident',flourish:'DressFlourish',twirl:'Twirl'};
@@ -33,19 +33,20 @@ export class CharacterMotion {
     });
     this.mixer.update(0);
     this.sampled=this.bones.map(({object})=>({object,rotation:object.quaternion.clone(),position:object.position.clone(),scale:object.scale.clone()}));
+    this.setPose('relaxed',false);
   }
 
-  setPose(type){
+  setPose(type,notify=true){
     if(!['relaxed','little','tada'].includes(type))return;
     this.cancel(false);this.selectedPose=type;
     for(const layer of this.poseLayers){layer.exiting=true;}
-    if(type!=='relaxed'){
-      const source=this.clips.get(type==='little'?'LittlePose':'TaDaPose');
+    {
+      const source=this.clips.get(type==='relaxed'?'RelaxedPose':type==='little'?'LittlePose':'TaDaPose');
       const clip=new THREE.AnimationClip(`Stance-${++this.serial}`,source.duration,source.tracks);
       const action=this.mixer.clipAction(clip).setLoop(THREE.LoopRepeat,Infinity).setEffectiveWeight(0).play();
-      this.poseLayers.push({clip,action,weight:0,exiting:false});
+      this.poseLayers.push({clip,action,type,weight:0,exiting:false});
     }
-    this.onChange(null);
+    if(notify)this.onChange(null);
   }
 
   nextDress(){

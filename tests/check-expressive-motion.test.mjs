@@ -12,7 +12,13 @@ const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(b
 const c=gltf.scene,m=new CharacterMotion(c,gltf.animations,{random:()=>.43}),g=new TailGrounding(c),picker=new CharacterPicker(c);
 const bones=[];c.traverse(o=>{if(o.isBone)bones.push(o);if(o.isMesh)o.raycast=()=>{throw new Error('Detailed mesh raycast must never run on tap')}});
 const tick=(n=1,dt=1/60)=>{for(let i=0;i<n;i++){m.update(dt);g.update(m);for(const b of bones){assert(b.position.toArray().every(Number.isFinite));assert(Math.abs(b.quaternion.length()-1)<.00001, b.name+' q='+b.quaternion.length()+' action='+m.current?.type+' gentle='+m.gentle);}assert(g.lift<.23);}};
-tick(180);const resting=c.getObjectByName('ArmR').quaternion.clone();
+tick(180);
+assert(g.contacts[0].x>g.contacts[1].x+.3,'Relaxed must cross the original left and right flukes');
+assert(Math.abs(g.contacts[0].z-g.contacts[1].z)>.08,'The crossing needs visible front/back separation');
+assert(Math.abs(Math.min(...g.contacts.map(p=>p.y)))<.00001,'Crossed fins must stay on the floor');
+for(const clip of m.clips.values())assert.equal(new Set(clip.tracks.map(t=>t.name)).size,clip.tracks.length,'Animation bindings must be unique: '+clip.name);
+const crossed=g.contacts.map(p=>p.clone());tick(100,0);g.contacts.forEach((p,i)=>assert(p.distanceTo(crossed[i])<.00001,'Paused relaxed pose must not drift'));
+const resting=c.getObjectByName('ArmR').quaternion.clone();
 m.setPose('little');tick(240);assert(resting.angleTo(c.getObjectByName('ArmR').quaternion)>.28,'Little pose must visibly raise the free flipper');
 tick(900);assert.equal(m.selectedPose,'little');assert(m.poseLayers[0].action.getEffectiveWeight()>.99);
 m.play('boop');tick(240);assert.equal(m.current,null);assert.equal(m.layers.length,0);assert(m.poseLayers[0].action.getEffectiveWeight()>.99,'Return to selected pose after nose tap');
@@ -31,4 +37,4 @@ const camera=new T.PerspectiveCamera(35,1,.1,100);camera.position.set(0,2.1,8);c
 const head=c.getObjectByName('Head').getWorldPosition(new T.Vector3());head.y+=.24;head.z+=.5;
 const headNdc=head.clone().project(camera);assert.equal(picker.pick(headNdc,camera),'boop');assert.equal(picker.pick(new T.Vector2(.99,.99),camera),null);
 const start=performance.now();for(let i=0;i<1000;i++)picker.pick(headNdc,camera);const pickMs=performance.now()-start;assert(pickMs<2000,'Tap picking too slow');
-console.log(JSON.stringify({status:'PASS',poses:'Held / blend back after actions',reactions:new Set(reactions).size,repeatedInterruptedActions:28,pausedFrames:400,analyticPicks:1000,pickMs:Math.round(pickMs)},null,2));
+console.log(JSON.stringify({status:'PASS',poses:'Held / blend back after actions',reactions:new Set(reactions).size,repeatedInterruptedActions:28,pausedFrames:500,analyticPicks:1000,pickMs:Math.round(pickMs)},null,2));

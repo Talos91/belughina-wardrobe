@@ -68,7 +68,7 @@
     {
       "file": "halter.glb",
       "beforeBytes": 10861720,
-      "afterBytes": 1390792,
+      "afterBytes": 1391788,
       "before": {
         "vertices": 18164,
         "triangles": 33499
@@ -106,14 +106,14 @@
     },
     {
       "file": "noir.glb",
-      "beforeBytes": 10026000,
-      "afterBytes": 2248320,
+      "beforeBytes": 10026316,
+      "afterBytes": 2239908,
       "before": {
-        "vertices": 46534,
+        "vertices": 46540,
         "triangles": 44999
       },
       "after": {
-        "vertices": 46534,
+        "vertices": 46540,
         "triangles": 44999
       }
     },
@@ -145,8 +145,8 @@
     },
     {
       "file": "satin.glb",
-      "beforeBytes": 9855876,
-      "afterBytes": 2517264,
+      "beforeBytes": 9831676,
+      "afterBytes": 2489716,
       "before": {
         "vertices": 37179,
         "triangles": 44999
@@ -158,8 +158,8 @@
     },
     {
       "file": "scarf.glb",
-      "beforeBytes": 14504568,
-      "afterBytes": 3490528,
+      "beforeBytes": 14504572,
+      "afterBytes": 3463600,
       "before": {
         "vertices": 19714,
         "triangles": 34929
@@ -171,8 +171,8 @@
     },
     {
       "file": "shorts.glb",
-      "beforeBytes": 9971324,
-      "afterBytes": 1931760,
+      "beforeBytes": 9716480,
+      "afterBytes": 1646200,
       "before": {
         "vertices": 18304,
         "triangles": 34108
@@ -210,8 +210,8 @@
     },
     {
       "file": "tote.glb",
-      "beforeBytes": 17730996,
-      "afterBytes": 3360956,
+      "beforeBytes": 17732952,
+      "afterBytes": 3349764,
       "before": {
         "vertices": 25384,
         "triangles": 47842
@@ -223,8 +223,8 @@
     },
     {
       "file": "trousers.glb",
-      "beforeBytes": 10552968,
-      "afterBytes": 2173884,
+      "beforeBytes": 10574920,
+      "afterBytes": 2198528,
       "before": {
         "vertices": 16788,
         "triangles": 30799
@@ -236,8 +236,8 @@
     },
     {
       "file": "wrap.glb",
-      "beforeBytes": 22177636,
-      "afterBytes": 7601784,
+      "beforeBytes": 22177608,
+      "afterBytes": 7525640,
       "before": {
         "vertices": 21941,
         "triangles": 36774
@@ -250,11 +250,6 @@
   ],
   "backgrounds": [
     {
-      "file": "atelier.png",
-      "beforeBytes": 2140573,
-      "afterBytes": 240760
-    },
-    {
       "file": "bedroom.png",
       "beforeBytes": 2247812,
       "afterBytes": 256558
@@ -265,24 +260,9 @@
       "afterBytes": 275100
     },
     {
-      "file": "greenhouse.png",
-      "beforeBytes": 2908532,
-      "afterBytes": 486568
-    },
-    {
       "file": "manor.png",
       "beforeBytes": 2345518,
       "afterBytes": 305718
-    },
-    {
-      "file": "moonlit.png",
-      "beforeBytes": 2331502,
-      "afterBytes": 305878
-    },
-    {
-      "file": "pastel.png",
-      "beforeBytes": 2310591,
-      "afterBytes": 288444
     },
     {
       "file": "resort.png",
@@ -290,24 +270,9 @@
       "afterBytes": 289114
     },
     {
-      "file": "scrapbook.png",
-      "beforeBytes": 2346121,
-      "afterBytes": 301112
-    },
-    {
-      "file": "seaside.png",
-      "beforeBytes": 2376874,
-      "afterBytes": 315874
-    },
-    {
       "file": "starlight.png",
       "beforeBytes": 2180712,
       "afterBytes": 218692
-    },
-    {
-      "file": "tuscany.png",
-      "beforeBytes": 2895684,
-      "afterBytes": 493216
     },
     {
       "file": "villa.png",

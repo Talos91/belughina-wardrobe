@@ -1,18 +1,18 @@
-import {createKeepsakeLetter} from './keepsake-letter.js?v=gift-web-1';
-import {CharacterPicker} from './character-picker.js?v=gift-web-1';
-import {createSalamiGreetings} from './salami-lines.js?v=gift-web-1';
-import {SalamiSummon} from './salami-summon.js?v=gift-web-1';
-import {SalamiScene} from './salami-scene.js?v=gift-web-1';
+import {createKeepsakeLetter} from './keepsake-letter.js?v=wardrobe-clear-15';
+import {CharacterPicker} from './character-picker.js?v=wardrobe-clear-15';
+import {createSalamiGreetings} from './salami-lines.js?v=wardrobe-clear-15';
+import {SalamiSummon} from './salami-summon.js?v=wardrobe-clear-15';
+import {SalamiScene} from './salami-scene.js?v=wardrobe-clear-15';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from './vendor/libs/meshopt_decoder.module.js';
-import {installEyeSkinTint} from './eye-skin.js?v=gift-web-1';
-import {LivingBackdrop} from './living-backdrop.js?v=gift-web-1';
-import {TailGrounding,createContactShadows} from './tail-grounding.js?v=gift-web-1';
-import {CharacterMotion} from './character-motion.js?v=gift-web-1';
-import {WardrobeAssets} from './wardrobe-assets.js?v=gift-web-1';
+import {installEyeSkinTint} from './eye-skin.js?v=wardrobe-clear-15';
+import {LivingBackdrop} from './living-backdrop.js?v=wardrobe-clear-15';
+import {TailGrounding,createContactShadows} from './tail-grounding.js?v=wardrobe-clear-15';
+import {CharacterMotion} from './character-motion.js?v=wardrobe-clear-15';
+import {WardrobeAssets} from './wardrobe-assets.js?v=wardrobe-clear-15';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
-import {DRESSES,CLOTHES,ITEMS,OUTFITS,EXTRAS,PLACES,PALETTE,DEFAULT_STATE,sanitizeState,equipOutfit,equipClothing,toggleExtra,randomLook,activeItems,lookName,thumbnail} from './wardrobe-state.js?v=gift-web-1';
+import {DRESSES,CLOTHES,ITEMS,OUTFITS,EXTRAS,PLACES,PALETTE,DEFAULT_STATE,sanitizeState,equipOutfit,equipClothing,toggleExtra,randomLook,activeItems,lookName,thumbnail} from './wardrobe-state.js?v=wardrobe-clear-15';
 
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const STORAGE='beluga-wardrobe-v1',LOOKS='beluga-looks-v1';
@@ -21,12 +21,14 @@ let state=sanitizeState(read(STORAGE,DEFAULT_STATE));
 if(!read(STORAGE,null)&&matchMedia('(prefers-reduced-motion: reduce)').matches)state.gentle=true;
 const loveLetter=createKeepsakeLetter({storageKey:'beluga-letter-v1',gentle:()=>state.gentle});
 let summonedSalami,salamiLoader,salamiLoadPromise,wasSummonReady=false,summonCameraScale=1;
-let tab='dresses',clothingSlot='top',colorTarget='base',part='primary',character,characterPicker,motion,grounding,contactShadows,eyeSkinTint,wardrobeAssets,yaw=-.13,targetYaw=-.13,soundEnabled=false,audioContext,speechTimer,toastTimer,photoSnapshot;
+let tab='dresses',colorTarget='base',part='primary',character,characterPicker,motion,grounding,contactShadows,eyeSkinTint,wardrobeAssets,yaw=-.13,targetYaw=-.13,soundEnabled=false,audioContext,speechTimer,toastTimer,photoSnapshot;
 const livingBackdrop=new LivingBackdrop($('#backdrop'));
 const salami=new SalamiScene($('#salami-scene'));
-$('#color-toggle').onclick=()=>{const open=$('#color-panel').hidden;$('#color-panel').hidden=!open;$('#color-toggle').setAttribute('aria-expanded',String(open))};
+$('#color-toggle').onclick=()=>{$('#color-panel').showModal();$('#color-toggle').setAttribute('aria-expanded','true')};
+$('#color-panel').addEventListener('close',()=>$('#color-toggle').setAttribute('aria-expanded','false'));
+$('#browse-toggle').onclick=()=>{document.body.classList.toggle('picker-expanded');renderItems()};
+$$('[data-performance]').forEach(button=>button.onclick=()=>{$('.performance-panel').dataset.mode=button.dataset.performance;$$('[data-performance]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)))});
 for(const [id,dir] of [['items-prev',-1],['items-next',1]])$('#'+id).onclick=()=>$('#items').scrollBy({left:dir*$('#items').clientWidth*.75,behavior:state.gentle?'instant':'smooth'});
-document.addEventListener('pointerdown',e=>{if(!e.target.closest('.color-panel,#color-toggle')){$('#color-panel').hidden=true;$('#color-toggle').setAttribute('aria-expanded','false')}});
 const materials=new Map(),originalColors=new Map();
 const savedRaw=read(LOOKS,[]);let looks=Array.isArray(savedRaw)?savedRaw.filter(x=>x&&typeof x==='object'&&x.state).slice(0,24).map(x=>({...x,state:sanitizeState(x.state)})):[];
 const base='/'; // All assets are served from the same private Site.
@@ -43,30 +45,42 @@ function chime(kind='soft'){
 function currentTarget(){return colorTarget}
 function currentParts(){return colorTarget==='hair'?[['primary','Hair color']]:ITEMS.find(x=>x.id===colorTarget).parts}
 function renderItems(){
- const list=tab==='room'?PLACES:tab==='dresses'?DRESSES:tab==='clothes'?CLOTHES.filter(x=>x.slot===clothingSlot):EXTRAS;
- $('#category-title').textContent={dresses:'Dresses',clothes:'Outfits',extras:'Accessories',room:'A little change of scenery'}[tab];
- $('#clear-outfit').hidden=tab==='room';$('#color-toggle').hidden=tab==='room';
- if(tab==='room'){$('#color-panel').hidden=true;$('#color-toggle').setAttribute('aria-expanded','false')}
- const box=$('#items');box.replaceChildren();box.setAttribute('aria-labelledby','tab-'+tab);
- $('#clothes-slots').hidden=tab!=='clothes';
- $$('#clothes-slots button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.slot===clothingSlot)));
- $('#clear-outfit').setAttribute('aria-pressed',String(state.outfit==='base'&&!state.top&&!state.bottom));
+ const slot=tab==='tops'?'top':tab==='bottoms'?'bottom':null;
+ const list=tab==='room'?PLACES:tab==='dresses'?DRESSES:slot?CLOTHES.filter(x=>x.slot===slot):EXTRAS;
+ if(list.length<=3)document.body.classList.remove('picker-expanded');
+ $('#browse-toggle').hidden=list.length<=3;
+ const expanded=document.body.classList.contains('picker-expanded');
+ $('#browse-toggle').textContent=expanded?'Show less ↑':`See all ${list.length} ↓`;
+ $('#browse-toggle').setAttribute('aria-expanded',String(expanded));
+ $('#category-title').textContent={dresses:'Dresses',tops:'Tops',bottoms:'Bottoms',extras:'Accessories',room:'Choose a room'}[tab];
+ $('#clear-outfit').hidden=tab==='room';$('#wardrobe-tools').hidden=tab==='room';
+ if(tab==='room'){$('#color-panel').close();$('#color-toggle').setAttribute('aria-expanded','false')}
+ const box=$('#items'),scroll=box.scrollTop,focused=box.contains(document.activeElement)?document.activeElement.dataset.id:null;
+ box.replaceChildren();box.setAttribute('aria-labelledby','tab-'+tab);
+ $('#clothes-slots').hidden=true;
+ const empty=slot?!state[slot]:tab==='extras'?!state.extras.length:state.outfit==='base';
+ $('#clear-outfit').textContent=slot?'No '+slot:tab==='extras'?'Clear extras':'No dress';
+ $('#clear-outfit').setAttribute('aria-pressed',String(empty));
  for(const item of list){
   const b=document.createElement('button');b.className='item';b.type='button';b.dataset.id=item.id;
-  b.setAttribute('aria-pressed',String(tab==='room'?state.place===item.id:activeItems(state).includes(item.id)));
+  const selected=tab==='room'?state.place===item.id:activeItems(state).includes(item.id);
+  b.setAttribute('aria-pressed',String(selected));
   b.setAttribute('aria-label',item.name+(item.description?', '+item.description:''));
   const img=document.createElement('img');img.src=tab==='room'?`./assets/thumbnails/room-${item.id}.webp`:thumbnail(item.id);if(tab==='room')b.dataset.room='true';img.alt='';img.draggable=false;b.append(img);
   const label=document.createElement('span');label.className='item-label';label.textContent=item.name;b.append(label);
+  const badge=document.createElement('span');badge.className='item-check';badge.textContent='✓';badge.setAttribute('aria-hidden','true');b.append(badge);
+  const status=document.createElement('span');status.className='item-state';status.textContent=selected?(tab==='room'?'Selected':'Wearing'):'';status.setAttribute('aria-hidden','true');b.append(status);
   b.addEventListener('click',()=>tab==='room'?setPlace(item.id):selectItem(item.id));box.append(b);
  }
+ box.scrollTop=scroll;if(focused)box.querySelector(`[data-id="${focused}"]`)?.focus({preventScroll:true});
  $('#glasses-position').hidden=tab!=='extras'||!state.extras.includes('sunglasses');$$('#glasses-position button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.position===state.glassesPosition)));
- $('#worn-summary').textContent=lookName(state);renderColors();
+ $('#worn-summary').textContent=tab==='room'?PLACES.find(x=>x.id===state.place).name:slot?(ITEMS.find(x=>x.id===state[slot])?.name||'Choose a '+slot):tab==='extras'?(state.extras.length?state.extras.length+' accessories on':'Pick a little finishing touch'):state.outfit==='base'?'Try a dress, or mix tops & bottoms':lookName(state);renderColors();
 }
-function renderColors(){const targets=['base','hair',...activeItems(state)];if(!targets.includes(colorTarget))colorTarget=targets.at(-1)||'base';const targetSelect=$('#color-target');targetSelect.replaceChildren();for(const id of targets){const opt=document.createElement('option');opt.value=id;opt.textContent=id==='hair'?'Her hair':id==='base'?'Her pearl skin':ITEMS.find(x=>x.id===id).name;targetSelect.append(opt)}targetSelect.value=colorTarget;const parts=currentParts();if(!parts.some(([id])=>id===part))part=parts[0][0];const select=$('#color-part');select.replaceChildren();for(const [id,label] of parts){const opt=document.createElement('option');opt.value=id;opt.textContent=label;select.append(opt)}select.value=part;const container=$('#swatches');container.replaceChildren();const value=state.colors[currentTarget()+'_'+part];for(const [label,color] of PALETTE){const button=document.createElement('button');button.className='swatch';button.style.background=color;button.setAttribute('aria-label',label);button.title=label;button.setAttribute('aria-pressed',String(value===color));button.onclick=()=>setColor(color);container.append(button)}const custom=document.createElement('label');custom.className='swatch custom';custom.title='Choose any color';const input=document.createElement('input');input.type='color';input.value=value||'#b4a5d1';input.setAttribute('aria-label','Choose a custom color');input.oninput=()=>setColor(input.value,false);input.onchange=()=>renderColors();custom.append(input);container.append(custom)}
+function renderColors(){const targets=['base','hair',...activeItems(state)];if(!targets.includes(colorTarget))colorTarget=targets.at(-1)||'base';const targetSelect=$('#color-target');targetSelect.replaceChildren();for(const id of targets){const opt=document.createElement('option');opt.value=id;opt.textContent=id==='hair'?'Her hair':id==='base'?'Her pearl skin':ITEMS.find(x=>x.id===id).name;targetSelect.append(opt)}targetSelect.value=colorTarget;const parts=currentParts();if(!parts.some(([id])=>id===part))part=parts[0][0];const select=$('#color-part');select.replaceChildren();for(const [id,label] of parts){const opt=document.createElement('option');opt.value=id;opt.textContent=label;select.append(opt)}select.value=part;const container=$('#swatches');container.replaceChildren();const value=state.colors[currentTarget()+'_'+part];for(const [label,color] of PALETTE){const button=document.createElement('button');button.className='swatch';button.style.setProperty('--swatch-color',color);button.textContent=label;button.setAttribute('aria-label',label);button.title=label;button.setAttribute('aria-pressed',String(value===color));button.onclick=()=>setColor(color);container.append(button)}const custom=document.createElement('label');custom.className='swatch custom';custom.title='Choose any color';custom.append(document.createTextNode('Custom')); const input=document.createElement('input');input.type='color';input.value=value||'#b4a5d1';input.setAttribute('aria-label','Choose a custom color');input.oninput=()=>setColor(input.value,false);input.onchange=()=>renderColors();custom.append(input);container.append(custom)}
 function setColor(color,render=true){state.colors[currentTarget()+'_'+part]=color;applyCharacter();persist();if(render)renderColors()}
 function selectItem(id){
  if(tab==='dresses')state=equipOutfit(state,state.outfit===id?'base':id);
- else if(tab==='clothes')state=equipClothing(state,id);
+ else if(tab==='tops'||tab==='bottoms')state=equipClothing(state,id);
  else state=toggleExtra(state,id);
  colorTarget=activeItems(state).includes(id)?id:'base';part='primary';
  const wanted=JSON.stringify(activeItems(state));
@@ -74,10 +88,9 @@ function selectItem(id){
  persist();renderItems();chime();
 }
 $$('#glasses-position button').forEach(b=>b.onclick=()=>{state={...state,glassesPosition:b.dataset.position};applyCharacter();persist();renderItems();chime()});
-$('#clear-outfit').onclick=()=>{state=equipOutfit(state,'base');colorTarget='base';applyCharacter();persist();renderItems()};
-$$('#clothes-slots button').forEach(b=>b.onclick=()=>{clothingSlot=b.dataset.slot;renderItems()});
+$('#clear-outfit').onclick=()=>{state=tab==='tops'?{...state,top:null}:tab==='bottoms'?{...state,bottom:null}:tab==='extras'?{...state,extras:[]}:state.outfit!=='base'?equipOutfit(state,'base'):state;colorTarget='base';applyCharacter();persist();renderItems()};
 $('#color-target').onchange=e=>{colorTarget=e.target.value;part='primary';renderColors()};
-function switchTab(id){tab=id;$('#items').scrollLeft=0;part='primary';$$('.tabs button').forEach(b=>{const yes=b.dataset.tab===id;b.setAttribute('aria-selected',String(yes));b.tabIndex=yes?0:-1});renderItems()}
+function switchTab(id){tab=id;$('#items').scrollTop=0;$('#items').scrollLeft=0;part='primary';$$('.tabs button').forEach(b=>{const yes=b.dataset.tab===id;b.setAttribute('aria-selected',String(yes));b.tabIndex=yes?0:-1});renderItems()}
 $$('.tabs button').forEach(b=>{b.onclick=()=>switchTab(b.dataset.tab);b.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const tabs=$$('.tabs button').filter(t=>!t.disabled);let i=tabs.indexOf(b);i=e.key==='Home'?0:e.key==='End'?tabs.length-1:(i+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length;switchTab(tabs[i].dataset.tab);tabs[i].focus()}});
 $('#color-part').onchange=e=>{part=e.target.value;renderColors()};$('#reset-color').onclick=()=>{delete state.colors[currentTarget()+'_'+part];applyCharacter();persist();renderColors();chime()};
 let placeRequest=0;
@@ -106,7 +119,7 @@ async function ensureSalami(){
  if(summonedSalami?.visual)return true;
  if(salamiLoadPromise)return salamiLoadPromise;
  if(!salamiLoader||!summonedSalami)return false;
- salamiLoadPromise=salamiLoader.loadAsync('./assets/models/salami.glb?v=gift-web-1').then(file=>{summonedSalami.setVisual(file.scene);return true}).catch(error=>{console.error(error);toast('Salami couldn’t arrive. Tap Summon to try again.');return false}).finally(()=>{salamiLoadPromise=null;syncSummon()});
+ salamiLoadPromise=salamiLoader.loadAsync('./assets/models/salami.glb?v=wardrobe-clear-15').then(file=>{summonedSalami.setVisual(file.scene);return true}).catch(error=>{console.error(error);toast('Salami couldn’t arrive. Tap Summon to try again.');return false}).finally(()=>{salamiLoadPromise=null;syncSummon()});
  syncSummon();return salamiLoadPromise;
 }
 $('#summon-salami').onclick=async()=>{if(await ensureSalami()&&summonedSalami?.summon({gentle:state.gentle})){salamiSpeechUntil=0;syncSummon();chime('happy');say('Special delivery ♡')}};
@@ -130,7 +143,7 @@ function animate(ms){
 }
 document.addEventListener('visibilitychange',()=>{lastFrame=null});
 async function init3D(){try{renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true,preserveDrawingBuffer:false});renderer.setPixelRatio(Math.min(devicePixelRatio,matchMedia('(pointer: coarse)').matches?1.5:2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.98;scene=new THREE.Scene();const pmrem=new THREE.PMREMGenerator(renderer);const environment=new RoomEnvironment();scene.environment=pmrem.fromScene(environment,.04).texture;scene.environmentIntensity=.45;environment.dispose();pmrem.dispose();scene.add(new THREE.HemisphereLight(0xfff0dd,0x8b7fa0,.8));const key=new THREE.DirectionalLight(0xffe7d2,2.2);key.position.set(-3,5,4);scene.add(key);const fill=new THREE.DirectionalLight(0xd4ddff,.7);fill.position.set(3,3,-2);scene.add(fill);camera=new THREE.PerspectiveCamera(31,1,.01,100);camera.position.set(0,2.25,8.1);camera.lookAt(0,2.05,0);const resize=()=>{const r=canvas.getBoundingClientRect();if(r.width<1||r.height<1)return;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;const halfFov=Math.tan(THREE.MathUtils.degToRad(camera.fov/2));camera.position.z=Math.max(4.55/(2*halfFov),3.3/(2*halfFov*camera.aspect));camera.lookAt(0,2.05,0);camera.updateProjectionMatrix()};new ResizeObserver(resize).observe(canvas.parentElement);resize();
- const loader=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);const gltf=await loader.loadAsync('./assets/models/beluga.glb?v=gift-web-1',progress=>{const text=$('#loading p');if(text)text.textContent=progress.total?`Waking up… ${Math.round(progress.loaded/progress.total*100)}%`:'Waking up…';});character=gltf.scene;characterPicker=new CharacterPicker(character);eyeSkinTint=installEyeSkinTint(character);character.traverse(o=>{if(o.name.startsWith('Outfit_'))o.visible=false});scene.add(character);grounding=new TailGrounding(character);contactShadows=createContactShadows(scene);character.traverse(o=>{if(o.isMesh){o.frustumCulled=false;const list=Array.isArray(o.material)?o.material:[o.material];for(const m of list){if(!m.color)continue;if(!originalColors.has(m.uuid))originalColors.set(m.uuid,m.color.clone());const key=m.name.replace(/\.\d+$/,'');if(!materials.has(key))materials.set(key,[]);if(!materials.get(key).includes(m))materials.get(key).push(m)}}});wardrobeAssets=new WardrobeAssets(character,loader,{onLoading:loading=>{$('#wardrobe-loading').hidden=!loading},onError:()=>toast('That piece couldn’t load. Select it again to retry.')});motion=new CharacterMotion(character,gltf.animations,{onSignal:type=>{if(type==='kiss')burst();if(type==='reveal')burst('✧')},onChange:type=>{$$('[data-action]').forEach(button=>button.classList.toggle('is-playing',button.closest('.poses')?button.dataset.action===motion.selectedPose:button.dataset.action===type))}});motion.setGentle(state.gentle);summonedSalami=new SalamiSummon(scene,wardrobeAssets,{onLand:()=>{syncSummon();saySalami();loveLetter.discover()}});salamiLoader=loader;applyCharacter();$('#loading').hidden=true;requestAnimationFrame(animate);setTimeout(()=>say('Oh, there you are ♡'),800);
+ const loader=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);const gltf=await loader.loadAsync('./assets/models/beluga.glb?v=wardrobe-clear-15',progress=>{const text=$('#loading p');if(text)text.textContent=progress.total?`Waking up… ${Math.round(progress.loaded/progress.total*100)}%`:'Waking up…';});character=gltf.scene;characterPicker=new CharacterPicker(character);eyeSkinTint=installEyeSkinTint(character);character.traverse(o=>{if(o.name.startsWith('Outfit_'))o.visible=false});scene.add(character);grounding=new TailGrounding(character);contactShadows=createContactShadows(scene);character.traverse(o=>{if(o.isMesh){o.frustumCulled=false;const list=Array.isArray(o.material)?o.material:[o.material];for(const m of list){if(!m.color)continue;if(!originalColors.has(m.uuid))originalColors.set(m.uuid,m.color.clone());const key=m.name.replace(/\.\d+$/,'');if(!materials.has(key))materials.set(key,[]);if(!materials.get(key).includes(m))materials.get(key).push(m)}}});wardrobeAssets=new WardrobeAssets(character,loader,{onLoading:loading=>{$('#wardrobe-loading').hidden=!loading},onError:()=>toast('That piece couldn’t load. Select it again to retry.')});motion=new CharacterMotion(character,gltf.animations,{onSignal:type=>{if(type==='kiss')burst();if(type==='reveal')burst('✧')},onChange:type=>{$$('[data-action]').forEach(button=>button.classList.toggle('is-playing',button.closest('.poses')?button.dataset.action===motion.selectedPose:button.dataset.action===type))}});motion.setGentle(state.gentle);summonedSalami=new SalamiSummon(scene,wardrobeAssets,{onLand:()=>{syncSummon();saySalami();loveLetter.discover()}});salamiLoader=loader;applyCharacter();$('#loading').hidden=true;requestAnimationFrame(animate);setTimeout(()=>say('Oh, there you are ♡'),800);
  }catch(error){console.error(error);$('#loading').classList.add('error');$('#loading').replaceChildren();const p=document.createElement('p');p.textContent='Our little beluga couldn’t load.';const b=document.createElement('button');b.textContent='Try again';b.onclick=()=>location.reload();$('#loading').append(p,b)}}
 function drawCover(ctx,img,w,h){const scale=Math.max(w/img.width,h/img.height);ctx.drawImage(img,(w-img.width*scale)/2,(h-img.height*scale)/2,img.width*scale,img.height*scale)}
 $('#photo').onclick=async()=>{if(!character)return;try{const bg=new Image();bg.src=`./assets/backgrounds/${state.place}.webp`;await bg.decode();const out=document.createElement('canvas');out.width=1200;out.height=1200;const c=out.getContext('2d');drawCover(c,bg,1200,1200);await salami.drawPhoto(c,bg,1200,1200);renderer.render(scene,camera);const h=1160,w=h*canvas.width/canvas.height;c.drawImage(canvas,(1200-w)/2,-20,w,h);photoSnapshot=out;$('#photo-preview').src=out.toDataURL('image/png');$('#photo-caption').value='';$('#photo-dialog').showModal();chime()}catch{toast('The photo couldn’t be made. Please try again.')}};

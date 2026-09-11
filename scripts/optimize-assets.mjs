@@ -60,7 +60,7 @@ function compactPrecision(document){
 
 for(const file of (await fs.readdir(source)).filter(x=>x.endsWith('.glb'))){
  const input=path.join(source,file),document=await io.read(input),before=count(document);
- if(document.hasExtension('EXT_meshopt_compression'))throw Error('Use full-quality original models as optimization input.');
+ if(document.getRoot().listExtensionsUsed().some(extension=>extension.extensionName==='EXT_meshopt_compression'))throw Error('Use full-quality original models as optimization input.');
  if(file==='beluga.glb')simplifyCharacter(document);
  await document.transform(prune({keepLeaves:true,keepAttributes:true}));
  // Keep the character atlas crisp; small jewelry uses fewer texels in memory.

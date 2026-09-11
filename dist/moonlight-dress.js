@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {SkirtDynamics} from './skirt-dynamics.js?v=gift-web-1';
+import {SkirtDynamics} from './skirt-dynamics.js?v=wardrobe-clear-15';
 
 /** Attach a fitted garment to the existing skeleton, never a second animated rig. */
 export function attachMoonlightDress(character,garmentScene,name='Outfit_moonlight'){
@@ -52,6 +52,9 @@ export function installRibbonColors(meshes){
   const blueOn={value:0},ivoryOn={value:0};
   for(const mesh of meshes){
     const material=mesh.material;material.normalScale.multiplyScalar(.65);
+    // The garment contains its own inner lining. Drawing the reverse of
+    // both shells lets that lining cut jagged patches through the ribbons.
+    material.side=THREE.FrontSide;
     material.onBeforeCompile=shader=>{
       Object.assign(shader.uniforms,{ribbonBlue:blue,ribbonIvory:ivory,ribbonBlueOn:blueOn,ribbonIvoryOn:ivoryOn});
       shader.fragmentShader=`uniform vec3 ribbonBlue;\nuniform vec3 ribbonIvory;\nuniform float ribbonBlueOn;\nuniform float ribbonIvoryOn;\n${shader.fragmentShader}`;

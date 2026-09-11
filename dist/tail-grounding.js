@@ -9,6 +9,28 @@ export class TailGrounding {
     this.character=character;this.root=character.getObjectByName('Root');this.tail=character.getObjectByName('Tail');
     this.feet=['L','R'].map(side=>({bone:character.getObjectByName('Tail'+side),samples:[],contact:new THREE.Vector3(),rest:new THREE.Vector3(),side:side==='L'?-1:1}));
     this.tailRest=this.tail.quaternion.clone();for(const foot of this.feet)foot.rotationRest=foot.bone.quaternion.clone();
+    // The original flukes were weighted for a wide stance: their upper edges
+    // stayed on the shared stem when the tips crossed. Let each lobe bend
+    // continuously from the stem, preserving the original bind silhouette.
+    character.traverse(mesh=>{
+      if(!mesh.isSkinnedMesh||/^(Outfit_|Wardrobe_)/.test(mesh.name)||mesh.userData.crossedFinWeights)return;
+      const {position,skinIndex,skinWeight}=mesh.geometry.attributes;
+      const tailIndex=mesh.skeleton.bones.findIndex(b=>b.name==='Tail');
+      const sides=['TailL','TailR'].map(name=>mesh.skeleton.bones.findIndex(b=>b.name===name));
+      if(tailIndex<0||sides.some(i=>i<0))return;
+      for(let i=0;i<position.count;i++){
+        const x=position.getX(i),y=position.getY(i),amount=ease((.72-y)/.24)*ease(Math.abs(x)/.04);
+        if(amount===0)continue;
+        const indices=[skinIndex.getX(i),skinIndex.getY(i),skinIndex.getZ(i),skinIndex.getW(i)];
+        const weights=[skinWeight.getX(i),skinWeight.getY(i),skinWeight.getZ(i),skinWeight.getW(i)];
+        const stem=indices.indexOf(tailIndex);if(stem<0)continue;
+        const side=sides[x<0?0:1];let lobe=indices.indexOf(side);
+        if(lobe<0)lobe=weights.findIndex(w=>w===0);if(lobe<0)continue;
+        indices[lobe]=side;const transfer=weights[stem]*amount;weights[stem]-=transfer;weights[lobe]+=transfer;
+        skinIndex.setXYZW(i,...indices);skinWeight.setXYZW(i,...weights);
+      }
+      skinIndex.needsUpdate=true;skinWeight.needsUpdate=true;mesh.userData.crossedFinWeights=true;
+    });
     this.meshes=[];character.updateMatrixWorld(true);
     character.traverse(mesh=>{
       if(!mesh.isSkinnedMesh||/^(Outfit_|Wardrobe_)/.test(mesh.name))return;this.meshes.push(mesh);mesh.skeleton.update();
@@ -43,7 +65,10 @@ export class TailGrounding {
     // Keep broad, rounded lobes. Large independent fluke rotations buckle the
     // original shared skin into a claw-like crease at the center of the tail.
     this.softenTail(this.tail,this.tailRest,.38,.13);
-    for(const foot of this.feet)this.softenTail(foot.bone,foot.rotationRest,.18,.055);
+    // Relaxed has an authored crossing, with one lobe slightly in front.
+    // Keep that shape while retaining the protective limit during gestures.
+    const crossed=THREE.MathUtils.clamp(motion.poseLayers.filter(layer=>layer.type==='relaxed').reduce((n,layer)=>n+layer.action.getEffectiveWeight(),0),0,1);
+    for(const foot of this.feet)this.softenTail(foot.bone,foot.rotationRest,THREE.MathUtils.lerp(.18,1,crossed),THREE.MathUtils.lerp(.055,1.65,crossed));
     // Balance the whole stance with a small roll instead of twisting either lobe.
     const planted=1-THREE.MathUtils.clamp(free,0,.9)*motion.amplitude;
     this.sync();let heights=this.feet.map(f=>this.contact(f));

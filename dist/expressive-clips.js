@@ -29,6 +29,22 @@ export function expressiveClips(character,original){
   }
   const clip=new THREE.AnimationClip(name,duration,tracks);clips.set(name,clip);
  }
+ make('RelaxedPose','Idle',12.0333,{
+  Root:(_,e)=>[0,-.08*e,-.025*e],Head:(t,e)=>[-.02*e,.09*e,(-.06+.009*Math.sin(t*Math.PI*2))*e],
+  ArmR:(_,e)=>[0,0,.10*e],
+  TailL:(_,e)=>[.22*e,0,1.18*e],TailR:(_,e)=>[-.18*e,0,-1.12*e]
+ },true);
+ // Turn the lobes from their shared tail stem. Rotating only their lower
+ // bone heads curls them into a diamond instead of a natural crossing.
+ const pivot=character.getObjectByName('Tail').getWorldPosition(new THREE.Vector3());
+ for(const [name,angles] of [['TailL',[.22,0,1.18]],['TailR',[-.18,0,-1.12]]]){
+  const bone=character.getObjectByName(name),offset=new THREE.Quaternion().setFromEuler(new THREE.Euler(...angles,'ZYX'));
+  const target=bone.getWorldPosition(new THREE.Vector3()).sub(pivot).applyQuaternion(offset).add(pivot);
+  target.x+=name==='TailL'?.14:-.14;
+  bone.parent.worldToLocal(target);
+  clips.get('RelaxedPose').tracks=clips.get('RelaxedPose').tracks.filter(track=>track.name!==name+'.position');
+  clips.get('RelaxedPose').tracks.push(new THREE.VectorKeyframeTrack(name+'.position',[0,12.0333],[...target.toArray(),...target.toArray()]));
+ }
  make('LittlePose','Idle',12.0333,{
   Root:(_,e)=>[0,-.23*e,0],Head:(t,e)=>[-.035*e,.12*e,(-.09+.012*Math.sin(t*Math.PI*2))*e],
   ArmR:(_,e)=>[-.07*e,0,.48*e],FinR:(_,e)=>[0,0,.12*e],ArmL:(_,e)=>[0,0,-.12*e]
