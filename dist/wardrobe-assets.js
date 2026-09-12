@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import {attachMoonlightDress,installRibbonColors} from './moonlight-dress.js?v=folio-release-4';
-import {SkirtDynamics} from './skirt-dynamics.js?v=folio-release-4';
-import {activeItems} from './wardrobe-state.js?v=folio-release-4';
+import {attachMoonlightDress,installRibbonColors} from './moonlight-dress.js?v=folio-release-5-clean';
+import {SkirtDynamics} from './skirt-dynamics.js?v=folio-release-5-clean';
+import {activeItems} from './wardrobe-state.js?v=folio-release-5-clean';
 
 // CPU counterpart of the concealed torso insert, also used by picking and
 // attachment checks. Exposed neck/shoulders, flippers and flukes are unchanged.
@@ -30,7 +30,7 @@ export class WardrobeAssets{
   if(this.loaded.has(id))return this.loaded.get(id);
   if(this.pending.has(id))return this.pending.get(id);
   const task=(async()=>{
-   const file=await this.loader.loadAsync(`./assets/models/${id}.glb?v=folio-release-4`);
+   const file=await this.loader.loadAsync(`./assets/models/${id}.glb?v=folio-release-5-clean`);
    const meshes=attachMoonlightDress(this.character,file.scene,'Wardrobe_'+id);
    // A crossed fluke sits underneath the outfit. Long hems hang from the
    // shared tail stem instead of curling inward with each separate tip.
@@ -150,6 +150,9 @@ export function installWardrobeCoverage(character){
   };
   for(const material of Array.isArray(mesh.material)?mesh.material:[mesh.material]){
    if(done.has(material))continue;done.add(material);
+   // Skin is a closed outer surface. Drawing its inward-facing triangles
+   // exposes white slivers through open armholes when a flipper lifts.
+   if(material.name.startsWith('base_primary'))material.side=THREE.FrontSide;
    const compile=material.onBeforeCompile,key=material.customProgramCacheKey();
    material.onBeforeCompile=(shader,renderer)=>{
     compile.call(material,shader,renderer);Object.assign(shader.uniforms,{wardrobeDress:dress,wardrobeTop:top,wardrobeBottom:bottom,wardrobeHat:hat});
@@ -177,6 +180,10 @@ export function installWardrobeCoverage(character){
       float neck=wardrobeDress<1.5?mix(vWardrobeRest.z>.10?2.49:2.38,2.28,smoothstep(.34,.46,wx)):(wardrobeDress<2.5?(vWardrobeRest.z>.13?2.34:2.20):(wardrobeDress<3.5?2.49:(vWardrobeRest.z>.07?2.38:2.05)));
       float dressHem=.72;
       if(wardrobeDress>.5&&torso&&wy>dressHem&&wy<neck)discard;
+      // The lining also encloses this small part of each arm root. Use a
+      // rounded rest-space boundary so it stays under the moving armhole.
+      vec3 armholeLining=(vec3(wx,wy,vWardrobeRest.z)-vec3(.390,2.235,.222))/vec3(.061,.060,.067);
+      if(wardrobeDress>.5&&wardrobeDress<1.5&&vWardrobeArm<.55&&dot(armholeLining,armholeLining)<1.)discard;
       float topNeck=wardrobeTop<1.5?2.26:(vWardrobeRest.z>.08?2.03+(.19+min(wx,.32)*.92)*(1.-smoothstep(.22,.31,wx)):2.03);
       // The softened cups cover the front torso up to their V boundary.
       // Preserve the real skin inside that V and above the armholes.
@@ -194,7 +201,7 @@ export function installWardrobeCoverage(character){
       if(wardrobeBottom>.5&&torso&&wy<1.83&&wy>bottomHem)discard;
     `);
    };
-   material.customProgramCacheKey=()=>key+'|wardrobe-coverage-10';material.needsUpdate=true;
+   material.customProgramCacheKey=()=>key+'|wardrobe-coverage-11';material.needsUpdate=true;
   }
  });
  return {set(ids){dress.value=ids.has('moonlight')?1:ids.has('pink')?2:ids.has('floral')?3:ids.has('bloom')?4:0;top.value=ids.has('stripe')?1:ids.has('halter')?2:ids.has('noir')?3:0;hat.value=ids.has('hat')?1:0;bottom.value=ids.has('shorts')?1:ids.has('trousers')?2:ids.has('satin')?3:0}};

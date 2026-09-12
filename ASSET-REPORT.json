@@ -16,7 +16,7 @@
     {
       "file": "bloom.glb",
       "beforeBytes": 10943040,
-      "afterBytes": 1918380,
+      "afterBytes": 1919956,
       "before": {
         "vertices": 20443,
         "triangles": 34845
@@ -55,7 +55,7 @@
     {
       "file": "floral.glb",
       "beforeBytes": 14015648,
-      "afterBytes": 2679736,
+      "afterBytes": 2684432,
       "before": {
         "vertices": 18774,
         "triangles": 32898
@@ -93,15 +93,15 @@
     },
     {
       "file": "moonlight.glb",
-      "beforeBytes": 12701872,
-      "afterBytes": 2721372,
+      "beforeBytes": 12949408,
+      "afterBytes": 2811448,
       "before": {
-        "vertices": 24473,
-        "triangles": 38141
+        "vertices": 28613,
+        "triangles": 43517
       },
       "after": {
-        "vertices": 24473,
-        "triangles": 38141
+        "vertices": 28613,
+        "triangles": 43517
       }
     },
     {
@@ -120,7 +120,7 @@
     {
       "file": "pink.glb",
       "beforeBytes": 13245264,
-      "afterBytes": 2890664,
+      "afterBytes": 2893048,
       "before": {
         "vertices": 46819,
         "triangles": 78325
