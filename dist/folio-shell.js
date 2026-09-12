@@ -1,11 +1,11 @@
 // A live paper folio around the existing wardrobe and WebGL scene.
 const $=s=>document.querySelector(s);
-const icon=name=>name==='shirt'?'<svg class="icon" viewBox="0 0 28 28" aria-hidden="true"><path d="M11 7a3 3 0 1 1 5 2c-1 1-2 1.5-2 3l10 6a2 2 0 0 1-1 4H5a2 2 0 0 1-1-4l10-6"/></svg>':`<svg class="icon" aria-hidden="true"><use href="./assets/icons.svg?v=folio-release-5-clean#${name}"/></svg>`;
+const icon=name=>name==='shirt'?'<svg class="icon" viewBox="0 0 28 28" aria-hidden="true"><path d="M11 7a3 3 0 1 1 5 2c-1 1-2 1.5-2 3l10 6a2 2 0 0 1-1 4H5a2 2 0 0 1-1-4l10-6"/></svg>':`<svg class="icon" aria-hidden="true"><use href="./assets/icons.svg?v=folio-release-6-mobile#${name}"/></svg>`;
 const nav=document.createElement('nav');nav.className='destinations';nav.setAttribute('aria-label','Main navigation');
 nav.innerHTML=[['wardrobe','shirt','Wardrobe'],['room','room','Room'],['play','reveal','Play'],['looks','heart','Looks']].map(([id,symbol,label])=>`<button type="button" data-destination="${id}" aria-pressed="${id==='wardrobe'}">${icon(symbol)}<span>${label}</span></button>`).join('');
 $('.topbar').insertBefore(nav,$('.top-actions'));
-const folio=$('.wardrobe');folio.classList.add('folio');
-folio.insertAdjacentHTML('afterbegin','<div class="folio-spine" aria-hidden="true"><i></i><i></i><i></i></div><button type="button" class="drawer-handle" id="drawer-handle" aria-expanded="true" aria-label="Collapse wardrobe"><span></span></button><div class="folio-title"><h1>Your wardrobe</h1><p>A little mix, a little match.</p></div>');
+const folio=$('.wardrobe');folio.classList.add('folio');folio.id='wardrobe-panel';
+folio.insertAdjacentHTML('afterbegin','<div class="folio-spine" aria-hidden="true"><i></i><i></i><i></i></div><div class="folio-title"><h1>Your wardrobe</h1><p>A little mix, a little match.</p><button type="button" class="drawer-handle" id="drawer-handle" aria-expanded="true" aria-controls="wardrobe-panel" aria-label="Hide wardrobe to give Belughina more room"><span class="drawer-label">Hide</span><svg class="drawer-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5"/></svg></button></div>');
 const tabs=$('.tabs');tabs.innerHTML=[['dresses','dress','Dresses'],['outfits','shirt','Outfits'],['extras','extras','Accessories']].map(([id,symbol,label])=>`<button type="button" role="tab" id="tab-${id}" data-tab="${id}" aria-controls="items" aria-selected="${id==='outfits'}" tabindex="${id==='outfits'?0:-1}">${icon(symbol)}<span>${label}</span></button>`).join('');
 $('.folio-title').after(tabs);
 const footer=document.createElement('div');footer.className='folio-footer';
@@ -19,15 +19,37 @@ $('#photo').insertAdjacentHTML('beforeend','<span>Photo</span>');
 const photoControls=document.createElement('div');photoControls.className='photo-controls';photoControls.innerHTML=`<button type="button" id="photo-return">← Return</button><div class="photo-capture-bar"><button type="button" data-framing="portrait" aria-pressed="true">Portrait</button><button type="button" id="photo-capture" aria-label="Capture photo">${icon('camera')}</button><button type="button" data-framing="landscape" aria-pressed="false">Landscape</button></div>`;document.body.append(photoControls);document.body.dataset.photoFraming='portrait';
 $('#summon-salami').querySelector('span').innerHTML='<img src="./assets/folio/salami.png" alt="">';
 document.body.dataset.destination='wardrobe';document.body.dataset.drawer='expanded';
+const mobileDrawer=matchMedia('(max-width:640px), (max-width:760px) and (min-height:501px)');
+function syncDrawer(){
+ const expanded=document.body.dataset.drawer==='expanded';
+ const destination=document.body.dataset.destination;
+ const label=destination==='room'?'rooms':destination==='play'?'play menu':'wardrobe';
+ const handle=$('#drawer-handle');handle.setAttribute('aria-expanded',String(expanded));
+ handle.setAttribute('aria-label',expanded?`Hide ${label} to give Belughina more room`:`Open ${label}`);
+ handle.querySelector('.drawer-label').textContent=expanded?'Hide':`Open ${label}`;
+ document.querySelectorAll('button[data-destination]').forEach(b=>{
+  if(mobileDrawer.matches&&b.dataset.destination===destination){b.setAttribute('aria-expanded',String(expanded));b.setAttribute('aria-controls','wardrobe-panel')}
+  else{b.removeAttribute('aria-expanded');b.removeAttribute('aria-controls')}
+ });
+}
+export function setDrawerExpanded(expanded){
+ if(!expanded&&folio.contains(document.activeElement)&&document.activeElement!==$('#drawer-handle'))$('#drawer-handle').focus({preventScroll:true});
+ document.body.dataset.drawer=expanded?'expanded':'collapsed';syncDrawer();
+}
+mobileDrawer.addEventListener('change',()=>{if(!mobileDrawer.matches)setDrawerExpanded(true);else syncDrawer()});
 
 export function connectFolio({navigate,undo,front,removeExtra}){
- document.querySelectorAll('button[data-destination]').forEach(b=>b.onclick=()=>navigate(b.dataset.destination));
- $('#drawer-handle').onclick=()=>{const expanded=document.body.dataset.drawer!=='expanded';document.body.dataset.drawer=expanded?'expanded':'collapsed';$('#drawer-handle').setAttribute('aria-expanded',String(expanded));$('#drawer-handle').setAttribute('aria-label',expanded?'Collapse wardrobe':'Expand wardrobe');};
+ document.querySelectorAll('button[data-destination]').forEach(b=>b.onclick=()=>{
+  if(mobileDrawer.matches&&b.dataset.destination===document.body.dataset.destination)setDrawerExpanded(document.body.dataset.drawer!=='expanded');
+  else navigate(b.dataset.destination);
+ });
+ $('#drawer-handle').onclick=()=>setDrawerExpanded(document.body.dataset.drawer!=='expanded');
  $('#undo-look').onclick=undo;$('#front-view').onclick=front;
  $('#finishing-touches').addEventListener('click',e=>{const b=e.target.closest('[data-remove-extra]');if(b)removeExtra(b.dataset.removeExtra)});
 }
 export function renderFolio({destination,tab,extras,canUndo,thumbnail}){
  document.body.dataset.destination=destination;document.body.dataset.wardrobeTab=tab;
+ syncDrawer();
  document.querySelectorAll('button[data-destination]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.destination===destination)));
  $('.folio-title h1').textContent=destination==='room'?'Pick a room':destination==='play'?'Bring her to life':'Your wardrobe';
  $('.folio-title p').textContent=destination==='room'?'A lovely place to be.':destination==='play'?'A little personality, a lot of love.':'A little mix, a little match.';

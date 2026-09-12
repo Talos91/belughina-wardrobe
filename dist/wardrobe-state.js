@@ -46,7 +46,7 @@ export function equipClothing(state,id){const item=CLOTHES.find(x=>x.id===id);if
 export function toggleExtra(state,id){if(!EXTRAS.some(x=>x.id===id)||(id==='wrap'&&state.outfit==='floral'))return state;const remove=id==='hat'?'crown':id==='crown'?'hat':null;return {...state,extras:state.extras.includes(id)?state.extras.filter(x=>x!==id):[...state.extras.filter(x=>x!==remove),id]};}
 export function activeItems(state){return [...(state.outfit==='base'?[state.top,state.bottom].filter(Boolean):[state.outfit]),...state.extras.filter(id=>id!=='wrap'||state.outfit!=='floral')];}
 export function lookName(state){return state.outfit!=='base'?OUTFITS.find(x=>x.id===state.outfit).name:[state.top,state.bottom].filter(Boolean).map(id=>ITEMS.find(x=>x.id===id).name).join(' + ')||'Just me';}
-export function thumbnail(id){return './assets/thumbnails/'+(['base','moonlight'].includes(id)?'outfits':'item')+'-'+id+'.png?v=folio-release-5-clean';}
+export function thumbnail(id){return './assets/thumbnails/'+(['base','moonlight'].includes(id)?'outfits':'item')+'-'+id+'.png?v=folio-release-6-mobile';}
 export function randomLook(state,random=Math.random){const pick=arr=>arr[Math.min(arr.length-1,Math.floor(random()*arr.length))];const dress=pick([null,...DRESSES]);return {...state,outfit:dress?.id||'base',top:dress?null:pick(['stripe','halter','noir']),bottom:dress?null:pick(['shorts','trousers','satin']),extras:random()>.5?[pick(EXTRAS.filter(x=>x.id!=='wrap'||dress?.id!=='floral')).id]:[]};}
 
 // Every opening starts a fresh dressing session; saved looks remain separate.

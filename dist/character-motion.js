@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {expressiveClips} from './expressive-clips.js?v=folio-release-5-clean';
+import {expressiveClips} from './expressive-clips.js?v=folio-release-6-mobile';
 
 const ease=t=>{t=THREE.MathUtils.clamp(t,0,1);return t*t*(3-2*t)};
 const CLIP_NAMES={wave:'Wave',wiggle:'Wiggle',kiss:'Kiss',boop:'Boop',pose:'Pose',delight:'DressDelight',reveal:'DressReveal',confident:'DressConfident',flourish:'DressFlourish',twirl:'Twirl',dance:'HappyDance',love:'SoLoved',camera:'CameraPose'};

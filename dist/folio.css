@@ -102,6 +102,26 @@ dialog:not(.love-letter){background:linear-gradient(#fff8e977,#fff8e977),var(--p
 }
 @media(min-width:761px) and (max-width:1150px) and (min-height:501px){.summon-salami{min-width:212px;min-height:60px;font-size:18px;right:20px;bottom:115px}.summon-salami>span{width:66px;height:102px}}
 
+/* A labelled paper-drawer control gives the character the screen on phones. */
+@media(max-width:640px), (max-width:760px) and (min-height:501px){
+ .wardrobe.folio,.wardrobe.folio:has(.glasses-position:not([hidden])){padding-top:12px}
+ .folio-title{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:0 0 10px}
+ .folio-title h1{font-size:25px;text-align:left;letter-spacing:-.5px;min-width:0}
+ .folio .drawer-handle{position:static;flex:none;display:flex;align-items:center;justify-content:center;gap:7px;min-width:80px;width:auto;height:44px;padding:0 12px;border:1px solid #205563;border-radius:24px;background:linear-gradient(110deg,#164d5be8,#205c69ec),var(--paper) center/350px;box-shadow:inset 0 0 0 3px #2b65704d,0 2px 3px #61422520;color:#fff7e5;font:14px Georgia}
+ .folio .drawer-handle .drawer-label{width:auto;height:auto;border:0;border-radius:0;background:none;box-shadow:none}
+ .drawer-chevron{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none;transition:transform .25s}
+ body[data-drawer=collapsed]{--drawer-height:64px}
+ body[data-drawer=collapsed] .wardrobe.folio{padding:8px 12px}
+ body[data-drawer=collapsed] .folio-title{padding:0;flex:1}
+ body[data-drawer=collapsed] .folio-title h1,body[data-drawer=collapsed] .folio .tabs{display:none}
+ body[data-drawer=collapsed] .folio .drawer-handle{width:100%;height:46px;font-size:16px}
+ body[data-drawer=collapsed] .folio .drawer-handle .drawer-label{background:none}
+ body[data-drawer=collapsed] .drawer-chevron{transform:rotate(180deg)}
+ body[data-drawer=collapsed] .folio-spine{top:14px;bottom:14px}
+ body[data-drawer=collapsed] .folio-spine i:nth-child(3){display:none}
+ body[data-drawer=collapsed] .folio::after{width:45px;height:45px}
+}
+
 /* A first-visit note belongs to the same illustrated paper folio. */
 dialog.welcome-note{position:fixed;inset:0;margin:auto;width:510px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 36px);padding:32px 40px 30px;border-radius:22px;overflow:auto;text-align:center;color:var(--ink);background:linear-gradient(#fff8e985,#fff8e985),var(--paper) center/650px;box-shadow:inset 0 0 0 6px #fff7e5,inset 0 0 0 7px #bfaa8477,0 20px 90px #281b1466}
 dialog.welcome-note::backdrop{background:#21373469;backdrop-filter:blur(5px)}

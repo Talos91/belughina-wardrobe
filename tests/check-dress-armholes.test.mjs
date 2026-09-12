@@ -4,10 +4,11 @@ import path from 'node:path';
 import * as T from 'three';
 import {MeshoptDecoder} from '../dist/vendor/libs/meshopt_decoder.module.js';
 import {GLTFLoader} from '../dist/vendor/loaders/GLTFLoader.js';
-import {WardrobeAssets} from '../dist/wardrobe-assets.js';
+import {WardrobeAssets,fitWardrobeSkin} from '../dist/wardrobe-assets.js';
 import {CharacterMotion} from '../dist/character-motion.js';
 import {TailGrounding} from '../dist/tail-grounding.js';
 import {DEFAULT_STATE} from '../dist/wardrobe-state.js';
+import {captureCoverage} from './wardrobe-coverage-probe.mjs';
 
 globalThis.self=globalThis;
 globalThis.createImageBitmap=async()=>({width:2048,height:2048,close(){}});
@@ -92,6 +93,71 @@ for(const id of ['pink','bloom','floral']){
 // Test actual outward-facing rear fabric at the reported white back patches,
 // then carry the same body-triangle fixtures through the raised-arm motions.
 await wardrobe.apply({...DEFAULT_STATE,outfit:'moonlight',top:null,bottom:null,extras:[]});
+// Restoring the open armhole also requires a small inward fit where lower
+// arm-root skin intersects the bodice. Keep that fit local and continuous.
+// Compare with the existing ordinary torso fit; visible surface rays are
+// tested separately in check-moonlight-visible-skin.
+function lowerArmRoot(point){
+ return Math.abs(point.x)>.15&&Math.abs(point.x)<.48&&point.y>2.10&&point.y<2.36&&point.z>0&&point.z<.39;
+}
+const fitSafety={changedVertices:0,protectedVertices:0,affectedTriangles:0,concealedNormalReversals:0,unmaskedNormalReversals:0,maximumDisplacement:0,minimumVisibleNormalDot:1};
+const moonlightDiscarded=captureCoverage(skin[0].material);
+for(const mesh of skin){
+ const p=mesh.geometry.attributes.position,arms=mesh.geometry.attributes.wardrobeArm,idx=mesh.geometry.index;
+ const ordinary=[],moonlight=[],changed=new Uint8Array(p.count);
+ for(let index=0;index<p.count;index++){
+  const rest=new T.Vector3().fromBufferAttribute(p,index),arm=arms.getX(index);
+  const before=fitWardrobeSkin(rest.clone(),arm,true,false,false,false);
+  const after=fitWardrobeSkin(rest.clone(),arm,true,false,false,true);
+  const displacement=before.distanceTo(after);
+  assert(Number.isFinite(displacement),'Moonlight fit remains finite');
+  assert.equal(after.y,before.y,'local arm-root fitting preserves body height');
+  assert(displacement<=Math.SQRT2*.045+1e-7,'Moonlight lower arm-root inset is bounded');
+  if(!lowerArmRoot(rest)){
+   assert(displacement<1e-7,'Moonlight must preserve upper/open arms and distal flippers');
+   fitSafety.protectedVertices++;
+  }
+  if(displacement>1e-7){changed[index]=1;fitSafety.changedVertices++}
+  fitSafety.maximumDisplacement=Math.max(fitSafety.maximumDisplacement,displacement);
+  ordinary.push(before);moonlight.push(after);
+ }
+ const beforeNormal=new T.Vector3(),afterNormal=new T.Vector3(),edge1=new T.Vector3(),edge2=new T.Vector3();
+ for(let i=0;i<idx.count;i+=3){
+  const ids=[idx.getX(i),idx.getX(i+1),idx.getX(i+2)];
+  if(!ids.some(index=>changed[index]))continue;
+  const original=ids.map(index=>ordinary[index]),fitted=ids.map(index=>moonlight[index]);
+  beforeNormal.subVectors(original[1],original[0]).cross(edge1.subVectors(original[2],original[0]));
+  afterNormal.subVectors(fitted[1],fitted[0]).cross(edge2.subVectors(fitted[2],fitted[0]));
+  if(beforeNormal.lengthSq()<1e-16)continue;
+  const dot=beforeNormal.clone().normalize().dot(afterNormal.clone().normalize());
+  const restTriangle=ids.map(index=>new T.Vector3().fromBufferAttribute(p,index));
+  const centroid=restTriangle.reduce((sum,point)=>sum.add(point),new T.Vector3()).multiplyScalar(1/3);
+  const whollyMasked=ids.every((index,j)=>moonlightDiscarded(restTriangle[j],arms.getX(index)))
+   &&moonlightDiscarded(centroid,ids.reduce((sum,index)=>sum+arms.getX(index),0)/3);
+  if(whollyMasked){if(dot<=0)fitSafety.concealedNormalReversals++}
+  else{
+   // Quantized mesh simplification creates thin slivers whose face normals
+   // can reverse under a smooth fit. Keep this diagnostic; visibility rays
+   // distinguish a real open-surface defect from hidden/subpixel triangles.
+   if(dot<=0)fitSafety.unmaskedNormalReversals++;
+   fitSafety.minimumVisibleNormalDot=Math.min(fitSafety.minimumVisibleNormalDot,dot);
+  }
+  fitSafety.affectedTriangles++;
+ }
+}
+assert(fitSafety.protectedVertices>1000,'upper body and flipper protection uses actual model vertices');
+// Dense cross-sections guard the transition into untouched skin independently
+// of mesh tessellation. Adjacent 0.5 mm samples cannot make a millimetre jump.
+for(const axis of ['x','y','z'])for(const sign of [-1,1]){
+ let previous=null;
+ const low=axis==='x'?.10:axis==='y'?2.05:-.02,high=axis==='x'?.52:axis==='y'?2.42:.43;
+ for(let value=low;value<=high;value+=.0005){
+  const point=new T.Vector3(sign*.3775,2.21,.2784);point[axis]=axis==='x'?sign*value:value;
+  const offset=fitWardrobeSkin(point.clone(),.20,true,false,false,true).sub(fitWardrobeSkin(point.clone(),.20,true,false,false,false));
+  if(previous)assert(offset.distanceTo(previous)<.001,'Moonlight inset joins the surrounding skin continuously');
+  previous=offset;
+ }
+}
 const fixtures=[
  ...[[-.113,2.400],[-.181,2.431],[-.230,2.416],[-.279,2.431]].map(xy=>({side:'rear',xyz:xy})),
  // These front-skin facets were visible from inside/back while the body
@@ -150,8 +216,10 @@ for(const action of ['wave','dance','tada']){
   for(const fixture of anchors){
    if(fixture.side==='front')for(const index of fixture.ids){
     if(fixture.mesh.geometry.attributes.wardrobeArm.getX(index)<.30)continue;
+    q.fromBufferAttribute(fixture.mesh.geometry.attributes.position,index);
+    if(lowerArmRoot(q))continue;
     fixture.mesh.getVertexPosition(index,a);T.SkinnedMesh.prototype.getVertexPosition.call(fixture.mesh,index,b);
-    assert(a.distanceTo(b)<1e-7,'Moonlight must not reshape the exposed arm skin');
+    assert(a.distanceTo(b)<1e-7,'Moonlight must not reshape upper/open arms outside the lower bodice fit');
    }
    const triangle=fixture.ids.map(i=>posed([fixture.mesh,i],new T.Vector3()));
    center.set(0,0,0);for(let j=0;j<3;j++)center.addScaledVector(triangle[j],fixture.bary.getComponent(j));
@@ -191,4 +259,4 @@ for(const action of ['wave','dance','tada']){
  }
 }
 facetGeometry.dispose();
-console.log(JSON.stringify({status:'PASS',report,moonlight:{rearFixtures:4,insideArmFixtures:4,minimumBackClearance,maximumBackClearance,insideFacetsCulled,doubleSidedControls}},null,2));
+console.log(JSON.stringify({status:'PASS',report,moonlight:{rearFixtures:4,insideArmFixtures:4,minimumBackClearance,maximumBackClearance,insideFacetsCulled,doubleSidedControls,fitSafety}},null,2));
