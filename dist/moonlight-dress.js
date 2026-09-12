@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {SkirtDynamics} from './skirt-dynamics.js?v=folio-release-3';
+import {SkirtDynamics} from './skirt-dynamics.js?v=folio-release-4';
 
 /** Attach a fitted garment to the existing skeleton, never a second animated rig. */
 export function attachMoonlightDress(character,garmentScene,name='Outfit_moonlight'){

@@ -94,3 +94,27 @@ dialog:not(.love-letter){background:linear-gradient(#fff8e977,#fff8e977),var(--p
 #photo-preview{max-height:48dvh;object-fit:contain;margin:12px 0}body[data-wardrobe-tab=extras] .folio .item[aria-pressed=true] .item-state{display:block;font:11px Georgia;color:#496c77;min-height:13px}
 
 @media(max-width:760px){.folio-footer .wardrobe-tools .tool-button:first-child span{display:block;font-size:10px;line-height:11px}}
+
+/* The secret invitation gets room to be noticed on the desktop stage. */
+@media(min-width:761px) and (min-height:501px){
+ .summon-salami{min-width:236px;min-height:66px;padding:18px 24px 18px 30px;right:30px;bottom:136px;font-size:20px;box-shadow:0 6px 18px #673c2940;transform-origin:center bottom}
+ .summon-salami>span{width:76px;height:116px;right:calc(100% - 19px);bottom:-7px}
+}
+@media(min-width:761px) and (max-width:1150px) and (min-height:501px){.summon-salami{min-width:212px;min-height:60px;font-size:18px;right:20px;bottom:115px}.summon-salami>span{width:66px;height:102px}}
+
+/* A first-visit note belongs to the same illustrated paper folio. */
+dialog.welcome-note{position:fixed;inset:0;margin:auto;width:510px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 36px);padding:32px 40px 30px;border-radius:22px;overflow:auto;text-align:center;color:var(--ink);background:linear-gradient(#fff8e985,#fff8e985),var(--paper) center/650px;box-shadow:inset 0 0 0 6px #fff7e5,inset 0 0 0 7px #bfaa8477,0 20px 90px #281b1466}
+dialog.welcome-note::backdrop{background:#21373469;backdrop-filter:blur(5px)}
+dialog.welcome-note[open]{animation:welcome-arrive .85s cubic-bezier(.18,.8,.3,1) both}
+.welcome-seal{display:grid;place-items:center;margin:0 auto 14px;width:58px;height:58px;border-radius:50%;border:1px dashed #fff2cd;background:#bf6957;box-shadow:0 0 0 4px #d78e73,0 3px 8px #73423140;font:36px Georgia;color:#fff6dd}
+.welcome-note h1{margin:8px 0 22px;font:normal 38px Georgia;letter-spacing:-.6px}.welcome-copy{font:17px/1.55 Georgia;color:#574d40}.welcome-copy p{margin:0 0 18px}.welcome-copy p:last-child{font-style:italic;color:var(--ink);font-size:22px;margin-bottom:24px}
+.welcome-start{position:relative;display:block;margin:0 auto;min-width:180px;min-height:52px;padding:12px 28px;border-radius:28px;border:1px solid #9b5947;background:linear-gradient(110deg,#d8876b,#b55e4e);box-shadow:0 0 0 3px #f5e2bf,0 4px 9px #60332230;color:#fff9e8;font:20px Georgia}.welcome-start::after{content:'';position:absolute;inset:4px;border:1px dashed #ffefd3a0;border-radius:inherit;pointer-events:none}.welcome-start:hover{filter:brightness(1.08)}
+.note-sparkle{position:absolute;pointer-events:none;left:calc(8% + var(--i)*13%);top:64%;color:#bc8a38;font:22px Georgia;opacity:0;animation:note-sparkles 2.2s calc(.3s + var(--i)*.11s) ease-out both}
+.love-letter:not(.just-discovered) .note-sparkle{display:none}.love-letter.just-discovered .letter-heart{animation:letter-heart-glow 1.2s .7s ease-in-out 2}
+@keyframes welcome-arrive{from{opacity:0;transform:translateY(25px) rotate(-2deg) scale(.92)}to{opacity:1;transform:none}}
+@keyframes note-sparkles{0%{opacity:0;transform:translateY(25px) scale(.4) rotate(-15deg)}25%{opacity:.9}to{opacity:0;transform:translateY(-190px) scale(1.25) rotate(18deg)}}
+@keyframes letter-heart-glow{50%{transform:scale(1.25);text-shadow:0 0 18px #d8994e}}
+dialog.welcome-note.gentle,dialog.gentle .note-sparkle,dialog.gentle .letter-heart{animation:none!important}
+@media(max-width:480px){dialog.welcome-note{padding:27px 24px 25px}.welcome-note h1{font-size:32px;margin-bottom:18px}.welcome-copy{font-size:16px;line-height:1.5}.welcome-seal{width:48px;height:48px;font-size:30px}.welcome-copy p{margin-bottom:16px}}
+@media(max-height:600px){dialog.welcome-note{padding-top:20px;padding-bottom:20px}.welcome-seal{display:none}.welcome-note h1{font-size:29px;margin-top:0;margin-bottom:14px}.welcome-copy p{margin-bottom:12px}.welcome-copy p:last-child{margin-bottom:16px}}
+@media(prefers-reduced-motion:reduce){dialog.welcome-note,.note-sparkle,.love-letter.just-discovered .letter-heart{animation:none!important}}

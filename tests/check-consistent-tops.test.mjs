@@ -4,7 +4,7 @@ import {Vector3,FrontSide} from 'three';
 import {GLTFLoader} from '../dist/vendor/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from '../dist/vendor/libs/meshopt_decoder.module.js';
 import {WardrobeAssets} from '../dist/wardrobe-assets.js';
-import {DEFAULT_STATE,sanitizeState,equipClothing} from '../dist/wardrobe-state.js';
+import {DEFAULT_STATE,sanitizeState,equipClothing,openingState,PLACES} from '../dist/wardrobe-state.js';
 
 globalThis.self=globalThis;
 globalThis.createImageBitmap=async()=>({width:1024,height:1024,close(){}});
@@ -37,3 +37,7 @@ for(const [old,newRoom] of Object.entries({atelier:'bedroom',seaside:'resort',gr
 assert.equal(sanitizeState({...DEFAULT_STATE,pose:'tada'}).pose,'tada');
 assert.equal(sanitizeState({...DEFAULT_STATE,pose:'camera'}).pose,'relaxed','Only persistent poses belong in saved looks');
 console.log('PASS: all three bottoms retain the shirt silhouette under the black halter; Moonlight shell rendering and saved-room migration.');
+
+const opening=openingState({...DEFAULT_STATE,outfit:'moonlight',extras:['tote'],place:'villa',colors:{base_primary:'#123456'},gentle:true});
+assert.deepEqual([opening.outfit,opening.top,opening.bottom,opening.extras,opening.place,opening.colors],['base',null,null,[],'bedroom',{}]);
+assert.equal(opening.gentle,true);assert.equal(PLACES.find(p=>p.id==='villa').name,'Tuscany Miraggio');

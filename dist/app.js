@@ -1,24 +1,25 @@
-import {connectFolio,renderFolio} from './folio-shell.js?v=folio-release-3';
-import {createKeepsakeLetter} from './keepsake-letter.js?v=folio-release-3';
-import {CharacterPicker} from './character-picker.js?v=folio-release-3';
-import {createSalamiGreetings} from './salami-lines.js?v=folio-release-3';
-import {SalamiSummon} from './salami-summon.js?v=folio-release-3';
-import {SalamiScene} from './salami-scene.js?v=folio-release-3';
+import {showWelcome} from './welcome-note.js?v=folio-release-4';
+import {connectFolio,renderFolio} from './folio-shell.js?v=folio-release-4';
+import {createKeepsakeLetter} from './keepsake-letter.js?v=folio-release-4';
+import {CharacterPicker} from './character-picker.js?v=folio-release-4';
+import {createSalamiGreetings} from './salami-lines.js?v=folio-release-4';
+import {SalamiSummon} from './salami-summon.js?v=folio-release-4';
+import {SalamiScene} from './salami-scene.js?v=folio-release-4';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from './vendor/libs/meshopt_decoder.module.js';
-import {installEyeSkinTint} from './eye-skin.js?v=folio-release-3';
-import {LivingBackdrop} from './living-backdrop.js?v=folio-release-3';
-import {TailGrounding,createContactShadows} from './tail-grounding.js?v=folio-release-3';
-import {CharacterMotion} from './character-motion.js?v=folio-release-3';
-import {WardrobeAssets} from './wardrobe-assets.js?v=folio-release-3';
+import {installEyeSkinTint} from './eye-skin.js?v=folio-release-4';
+import {LivingBackdrop} from './living-backdrop.js?v=folio-release-4';
+import {TailGrounding,createContactShadows} from './tail-grounding.js?v=folio-release-4';
+import {CharacterMotion} from './character-motion.js?v=folio-release-4';
+import {WardrobeAssets} from './wardrobe-assets.js?v=folio-release-4';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
-import {DRESSES,CLOTHES,ITEMS,OUTFITS,EXTRAS,PLACES,PALETTE,DEFAULT_STATE,sanitizeState,equipOutfit,equipClothing,toggleExtra,randomLook,activeItems,lookName,thumbnail} from './wardrobe-state.js?v=folio-release-3';
+import {DRESSES,CLOTHES,ITEMS,OUTFITS,EXTRAS,PLACES,PALETTE,DEFAULT_STATE,sanitizeState,openingState,equipOutfit,equipClothing,toggleExtra,randomLook,activeItems,lookName,thumbnail} from './wardrobe-state.js?v=folio-release-4';
 
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const STORAGE='beluga-wardrobe-v1',LOOKS='beluga-looks-v1';
 function read(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback}}
-let state=sanitizeState(read(STORAGE,DEFAULT_STATE));
+let state=openingState(read(STORAGE,DEFAULT_STATE));
 if(!read(STORAGE,null)&&matchMedia('(prefers-reduced-motion: reduce)').matches)state.gentle=true;
 const loveLetter=createKeepsakeLetter({storageKey:'beluga-letter-v1',gentle:()=>state.gentle});
 let summonedSalami,salamiLoader,salamiLoadPromise,wasSummonReady=false,summonCameraScale=1;
@@ -80,6 +81,7 @@ function renderItems(){
   const label=document.createElement('span');label.className='item-label';label.textContent=item.name;b.append(label);
   const badge=document.createElement('span');badge.className='item-check';badge.textContent='✓';badge.setAttribute('aria-hidden','true');b.append(badge);
   const status=document.createElement('span');status.className='item-state';status.textContent=selected?(tab==='room'?'Selected':tab==='extras'?'Tap to remove':'Wearing'):'';status.setAttribute('aria-hidden','true');b.append(status);
+  if(item.id==='wrap'&&state.outfit==='floral'){b.disabled=true;status.textContent='Choose another dress';b.setAttribute('aria-label','Coastal wrap, choose another dress to wear this wrap');}
   if(tab==='room')status.textContent={bedroom:'Evening',resort:'Day',villa:'Afternoon',manor:'Night',starlight:'Night',cafe:'Day'}[item.id];
   b.addEventListener('click',()=>tab==='room'?setPlace(item.id):selectItem(item.id));(section?section.querySelector('.garment-grid'):box).append(b);
  }
@@ -125,7 +127,14 @@ const canvas=$('#viewport');let renderer,scene,camera;let lastFrame=null;let bac
 function syncSummon(){
  const ready=Boolean(state.extras.includes('tote')&&wardrobeAssets?.shown.has('tote'));
  summonedSalami?.setEquipped(ready);$('#summon-salami').hidden=!ready;
- if(ready&&!wasSummonReady&&!state.gentle)$('#summon-salami').animate([{transform:'scale(.72)',opacity:0},{transform:'scale(1.10)',opacity:1,offset:.60},{transform:'scale(1)',opacity:1}],{duration:650,easing:'cubic-bezier(.2,.8,.3,1)'});wasSummonReady=ready;
+ if(ready&&!wasSummonReady){
+  const button=$('#summon-salami');
+  button.getAnimations().forEach(animation=>animation.cancel());
+  if(!state.gentle&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
+   button.animate([{transform:'translateY(38px) rotate(-8deg) scale(.65)',opacity:0},{transform:'translateY(-12px) rotate(3deg) scale(1.12)',opacity:1,offset:.48},{transform:'translateY(3px) rotate(-2deg) scale(.98)',offset:.72},{transform:'translateY(0) rotate(0) scale(1)'}],{duration:1000,easing:'cubic-bezier(.2,.7,.3,1)'});
+   button.animate([{boxShadow:'0 0 0 0 #fff3c8bb'},{boxShadow:'0 0 0 20px #fff3c800'}],{duration:1000,delay:700,iterations:2,easing:'ease-out'});
+  }
+ }wasSummonReady=ready;
  $('#summon-salami').disabled=!ready||Boolean(salamiLoadPromise)||Boolean(summonedSalami?.busy);
  $('#summon-salami').setAttribute('aria-busy',String(Boolean(salamiLoadPromise||summonedSalami?.busy)));
 }
@@ -133,7 +142,7 @@ async function ensureSalami(){
  if(summonedSalami?.visual)return true;
  if(salamiLoadPromise)return salamiLoadPromise;
  if(!salamiLoader||!summonedSalami)return false;
- salamiLoadPromise=salamiLoader.loadAsync('./assets/models/salami.glb?v=folio-release-3').then(file=>{summonedSalami.setVisual(file.scene);return true}).catch(error=>{console.error(error);toast('Salami couldn’t arrive. Tap Summon to try again.');return false}).finally(()=>{salamiLoadPromise=null;syncSummon()});
+ salamiLoadPromise=salamiLoader.loadAsync('./assets/models/salami.glb?v=folio-release-4').then(file=>{summonedSalami.setVisual(file.scene);return true}).catch(error=>{console.error(error);toast('Salami couldn’t arrive. Tap Summon to try again.');return false}).finally(()=>{salamiLoadPromise=null;syncSummon()});
  syncSummon();return salamiLoadPromise;
 }
 $('#summon-salami').onclick=async()=>{if(await ensureSalami()&&summonedSalami?.summon({gentle:state.gentle})){salamiSpeechUntil=0;syncSummon();chime('happy');say('Special delivery ♡')}};
@@ -157,7 +166,7 @@ function animate(ms){
 }
 document.addEventListener('visibilitychange',()=>{lastFrame=null});
 async function init3D(){try{renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true,preserveDrawingBuffer:false});renderer.setPixelRatio(Math.min(devicePixelRatio,matchMedia('(pointer: coarse)').matches?1.5:2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.98;scene=new THREE.Scene();const pmrem=new THREE.PMREMGenerator(renderer);const environment=new RoomEnvironment();scene.environment=pmrem.fromScene(environment,.04).texture;scene.environmentIntensity=.45;environment.dispose();pmrem.dispose();scene.add(new THREE.HemisphereLight(0xfff0dd,0x8b7fa0,.8));const key=new THREE.DirectionalLight(0xffe7d2,2.2);key.position.set(-3,5,4);scene.add(key);const fill=new THREE.DirectionalLight(0xd4ddff,.7);fill.position.set(3,3,-2);scene.add(fill);camera=new THREE.PerspectiveCamera(31,1,.01,100);camera.position.set(0,2.25,8.1);camera.lookAt(0,2.05,0);const resize=()=>{const r=canvas.getBoundingClientRect();if(r.width<1||r.height<1)return;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;const halfFov=Math.tan(THREE.MathUtils.degToRad(camera.fov/2));camera.position.z=Math.max(4.55/(2*halfFov),3.3/(2*halfFov*camera.aspect));camera.lookAt(0,2.05,0);camera.updateProjectionMatrix()};new ResizeObserver(resize).observe(canvas.parentElement);resize();
- const loader=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);const gltf=await loader.loadAsync('./assets/models/beluga.glb?v=folio-release-3',progress=>{const text=$('#loading p');if(text)text.textContent=progress.total?`Waking up… ${Math.round(progress.loaded/progress.total*100)}%`:'Waking up…';});character=gltf.scene;characterPicker=new CharacterPicker(character);eyeSkinTint=installEyeSkinTint(character);character.traverse(o=>{if(o.name.startsWith('Outfit_'))o.visible=false});scene.add(character);grounding=new TailGrounding(character);contactShadows=createContactShadows(scene);character.traverse(o=>{if(o.isMesh){o.frustumCulled=false;const list=Array.isArray(o.material)?o.material:[o.material];for(const m of list){if(!m.color)continue;if(!originalColors.has(m.uuid))originalColors.set(m.uuid,m.color.clone());const key=m.name.replace(/\.\d+$/,'');if(!materials.has(key))materials.set(key,[]);if(!materials.get(key).includes(m))materials.get(key).push(m)}}});wardrobeAssets=new WardrobeAssets(character,loader,{onLoading:loading=>{$('#wardrobe-loading').hidden=!loading},onError:()=>toast('That piece couldn’t load. Select it again to retry.')});motion=new CharacterMotion(character,gltf.animations,{onSignal:type=>{if(type==='kiss')burst();if(type==='reveal')burst('✧')},onChange:type=>{$$('[data-action]').forEach(button=>{const selected=button.closest('.poses')?button.dataset.action===motion.selectedPose:button.dataset.action===type;button.classList.toggle('is-playing',selected);if(button.closest('.poses'))button.setAttribute('aria-pressed',String(selected))})}});motion.setGentle(state.gentle);summonedSalami=new SalamiSummon(scene,wardrobeAssets,{onLand:()=>{syncSummon();saySalami();loveLetter.discover()}});salamiLoader=loader;applyCharacter();$('#loading').hidden=true;requestAnimationFrame(animate);setTimeout(()=>say('Oh, there you are ♡'),800);
+ const loader=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);const gltf=await loader.loadAsync('./assets/models/beluga.glb?v=folio-release-4',progress=>{const text=$('#loading p');if(text)text.textContent=progress.total?`Waking up… ${Math.round(progress.loaded/progress.total*100)}%`:'Waking up…';});character=gltf.scene;characterPicker=new CharacterPicker(character);eyeSkinTint=installEyeSkinTint(character);character.traverse(o=>{if(o.name.startsWith('Outfit_'))o.visible=false});scene.add(character);grounding=new TailGrounding(character);contactShadows=createContactShadows(scene);character.traverse(o=>{if(o.isMesh){o.frustumCulled=false;const list=Array.isArray(o.material)?o.material:[o.material];for(const m of list){if(!m.color)continue;if(!originalColors.has(m.uuid))originalColors.set(m.uuid,m.color.clone());const key=m.name.replace(/\.\d+$/,'');if(!materials.has(key))materials.set(key,[]);if(!materials.get(key).includes(m))materials.get(key).push(m)}}});wardrobeAssets=new WardrobeAssets(character,loader,{onLoading:loading=>{$('#wardrobe-loading').hidden=!loading},onError:()=>toast('That piece couldn’t load. Select it again to retry.')});motion=new CharacterMotion(character,gltf.animations,{onSignal:type=>{if(type==='kiss')burst();if(type==='reveal')burst('✧')},onChange:type=>{$$('[data-action]').forEach(button=>{const selected=button.closest('.poses')?button.dataset.action===motion.selectedPose:button.dataset.action===type;button.classList.toggle('is-playing',selected);if(button.closest('.poses'))button.setAttribute('aria-pressed',String(selected))})}});motion.setGentle(state.gentle);summonedSalami=new SalamiSummon(scene,wardrobeAssets,{onLand:()=>{syncSummon();saySalami();loveLetter.discover()}});salamiLoader=loader;applyCharacter();$('#loading').hidden=true;requestAnimationFrame(animate);setTimeout(()=>say('Oh, there you are ♡'),800);
  }catch(error){console.error(error);$('#loading').classList.add('error');$('#loading').replaceChildren();const p=document.createElement('p');p.textContent='Our little beluga couldn’t load.';const b=document.createElement('button');b.textContent='Try again';b.onclick=()=>location.reload();$('#loading').append(p,b)}}
 function drawCover(ctx,img,w,h){const scale=Math.max(w/img.width,h/img.height);ctx.drawImage(img,(w-img.width*scale)/2,(h-img.height*scale)/2,img.width*scale,img.height*scale)}
 function captureScene(width,height){
@@ -181,3 +190,5 @@ connectFolio({
  removeExtra(id){rememberLook();state=toggleExtra(state,id);applyCharacter();persist();renderItems();}
 });
 renderItems();setPlace(state.place,true);init3D();
+
+showWelcome({gentle:()=>state.gentle});

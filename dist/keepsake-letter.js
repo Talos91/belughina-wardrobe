@@ -21,20 +21,24 @@ export function createKeepsakeLetter({storageKey='beluga-letter-v1',gentle=()=>f
  let storage;try{storage=window.localStorage;}catch{}
  const memory=new LetterUnlock(storage,storageKey),button=document.querySelector('#letter-button'),dialog=document.querySelector('#love-letter');
  const body=dialog.querySelector('.letter-copy');
+ function fillLetter(){if(body.childElementCount)return;
  for(const text of LETTER_PARAGRAPHS){const p=document.createElement('p');p.textContent=text;body.append(p);}
  const signature=document.createElement('p');signature.className='letter-signature';signature.append('I love you,',document.createElement('br'),'Salami');body.append(signature);
+ }
  button.hidden=!memory.unlocked;
  function open(){
   if(!memory.unlocked||dialog.open)return;
-  dialog.classList.toggle('gentle',gentle());dialog.showModal();body.scrollTop=0;
+  fillLetter();dialog.classList.toggle('gentle',gentle());dialog.showModal();body.scrollTop=0;
   dialog.querySelector('.letter-close').focus({preventScroll:true});
  }
  button.addEventListener('click',open);
- dialog.addEventListener('close',()=>{if(!button.hidden)button.focus({preventScroll:true});});
+ dialog.addEventListener('close',()=>{dialog.classList.remove('just-discovered');if(!button.hidden)button.focus({preventScroll:true});});
  window.addEventListener('storage',event=>{if(event.key===storageKey&&event.newValue==='unlocked'){memory.unlocked=true;button.hidden=false;}});
  return {discover(){
   if(!memory.discover())return;
   button.hidden=false;
+  dialog.classList.add('just-discovered');
+  if(!dialog.querySelector('.note-sparkle'))for(let i=0;i<7;i++){const star=document.createElement('span');star.className='note-sparkle';star.textContent=i%3?'✧':'♡';star.setAttribute('aria-hidden','true');star.style.setProperty('--i',i);dialog.append(star);}
   if(!gentle()&&!matchMedia('(prefers-reduced-motion: reduce)').matches)button.animate([{transform:'scale(.55)',opacity:0},{transform:'scale(1.18)',opacity:1},{transform:'scale(1)'}],{duration:600,easing:'cubic-bezier(.2,.8,.2,1)'});
   open();
  }};

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import {attachMoonlightDress,installRibbonColors} from './moonlight-dress.js?v=folio-release-3';
-import {SkirtDynamics} from './skirt-dynamics.js?v=folio-release-3';
-import {activeItems} from './wardrobe-state.js?v=folio-release-3';
+import {attachMoonlightDress,installRibbonColors} from './moonlight-dress.js?v=folio-release-4';
+import {SkirtDynamics} from './skirt-dynamics.js?v=folio-release-4';
+import {activeItems} from './wardrobe-state.js?v=folio-release-4';
 
 // CPU counterpart of the concealed torso insert, also used by picking and
 // attachment checks. Exposed neck/shoulders, flippers and flukes are unchanged.
@@ -30,7 +30,7 @@ export class WardrobeAssets{
   if(this.loaded.has(id))return this.loaded.get(id);
   if(this.pending.has(id))return this.pending.get(id);
   const task=(async()=>{
-   const file=await this.loader.loadAsync(`./assets/models/${id}.glb?v=folio-release-3`);
+   const file=await this.loader.loadAsync(`./assets/models/${id}.glb?v=folio-release-4`);
    const meshes=attachMoonlightDress(this.character,file.scene,'Wardrobe_'+id);
    // A crossed fluke sits underneath the outfit. Long hems hang from the
    // shared tail stem instead of curling inward with each separate tip.
@@ -172,7 +172,9 @@ export function installWardrobeCoverage(character){
     shader.fragmentShader='uniform float wardrobeDress;\nuniform float wardrobeTop;\nuniform float wardrobeBottom;\nvarying vec3 vWardrobeRest;\nvarying float vWardrobeArm;\n'+shader.fragmentShader;
     shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>',`#include <clipping_planes_fragment>
       float wy=vWardrobeRest.y;float wx=abs(vWardrobeRest.x);bool torso=vWardrobeArm<.30;
-      float neck=wardrobeDress<1.5?2.28:(wardrobeDress<2.5?(vWardrobeRest.z>.13?2.34:2.20):(wardrobeDress<3.5?2.49:(vWardrobeRest.z>.07?2.38:2.05)));
+      // Moonlight's fitted bodice rises to 2.54 at the front. Conceal the
+      // torso inside that neckline, tapering down toward the open armholes.
+      float neck=wardrobeDress<1.5?mix(vWardrobeRest.z>.10?2.49:2.38,2.28,smoothstep(.34,.46,wx)):(wardrobeDress<2.5?(vWardrobeRest.z>.13?2.34:2.20):(wardrobeDress<3.5?2.49:(vWardrobeRest.z>.07?2.38:2.05)));
       float dressHem=.72;
       if(wardrobeDress>.5&&torso&&wy>dressHem&&wy<neck)discard;
       float topNeck=wardrobeTop<1.5?2.26:(vWardrobeRest.z>.08?2.03+(.19+min(wx,.32)*.92)*(1.-smoothstep(.22,.31,wx)):2.03);
@@ -192,7 +194,7 @@ export function installWardrobeCoverage(character){
       if(wardrobeBottom>.5&&torso&&wy<1.83&&wy>bottomHem)discard;
     `);
    };
-   material.customProgramCacheKey=()=>key+'|wardrobe-coverage-9';material.needsUpdate=true;
+   material.customProgramCacheKey=()=>key+'|wardrobe-coverage-10';material.needsUpdate=true;
   }
  });
  return {set(ids){dress.value=ids.has('moonlight')?1:ids.has('pink')?2:ids.has('floral')?3:ids.has('bloom')?4:0;top.value=ids.has('stripe')?1:ids.has('halter')?2:ids.has('noir')?3:0;hat.value=ids.has('hat')?1:0;bottom.value=ids.has('shorts')?1:ids.has('trousers')?2:ids.has('satin')?3:0}};

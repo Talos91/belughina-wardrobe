@@ -24,7 +24,7 @@ export const EXTRAS=[
 export const OUTFITS=[{id:'base',name:'Just me',parts:[['primary','Pearl color']]},...DRESSES];
 export const HAIR=[{id:'bun',name:'Her signature bun'}];
 export const ITEMS=[...OUTFITS,...CLOTHES,...EXTRAS];
-export const PLACES=[{id:'bedroom',name:'Cozy chic bedroom'},{id:'resort',name:'Seaside resort'},{id:'villa',name:'Tuscany'},{id:'manor',name:'Salami manor'},{id:'starlight',name:'Moonlit pastel playroom'},{id:'cafe',name:'Fashionista café'}];
+export const PLACES=[{id:'bedroom',name:'Cozy chic bedroom'},{id:'resort',name:'Seaside resort'},{id:'villa',name:'Tuscany Miraggio'},{id:'manor',name:'Salami manor'},{id:'starlight',name:'Moonlit pastel playroom'},{id:'cafe',name:'Fashionista café'}];
 export const PALETTE=[['Periwinkle','#aebde9'],['Lilac','#c6b6e2'],['Rose','#edb3c2'],['Buttercream','#f1dfb7'],['Sage','#b3c3a3'],['Original pearl','#f3eee5']];
 export const DEFAULT_STATE={outfit:'base',top:null,bottom:null,hair:'bun',extras:[],glassesPosition:'eyes',colors:{},place:'bedroom',pose:'relaxed',gentle:false,sparkles:true};
 export function sanitizeState(value){
@@ -35,15 +35,22 @@ export function sanitizeState(value){
  if(Array.isArray(value.extras))s.extras=[...new Set(value.extras.filter(id=>EXTRAS.some(x=>x.id===id)))];
  // Preserve previously saved looks when moving the wrap out of Bottoms.
  if(value.bottom==='wrap'&&!s.extras.includes('wrap'))s.extras.push('wrap');
+ if(s.outfit==='floral')s.extras=s.extras.filter(id=>id!=='wrap');
  if(['relaxed','little','tada'].includes(value.pose))s.pose=value.pose;
  if(value.glassesPosition==='forehead')s.glassesPosition='forehead';
  if(value.colors&&typeof value.colors==='object')for(const [k,v] of Object.entries(value.colors))if(/^[a-z]+_(primary|secondary|detail)$/.test(k)&&/^#[0-9a-f]{6}$/i.test(v))s.colors[k]=v;
  if(typeof value.gentle==='boolean')s.gentle=value.gentle;if(typeof value.sparkles==='boolean')s.sparkles=value.sparkles;return s;
 }
-export function equipOutfit(state,id){if(!OUTFITS.some(x=>x.id===id))return state;return {...state,outfit:id,top:null,bottom:null};}
+export function equipOutfit(state,id){if(!OUTFITS.some(x=>x.id===id))return state;return {...state,outfit:id,top:null,bottom:null,extras:id==='floral'?state.extras.filter(x=>x!=='wrap'):state.extras};}
 export function equipClothing(state,id){const item=CLOTHES.find(x=>x.id===id);if(!item)return state;return {...state,outfit:'base',[item.slot]:state[item.slot]===id?null:id};}
-export function toggleExtra(state,id){if(!EXTRAS.some(x=>x.id===id))return state;const remove=id==='hat'?'crown':id==='crown'?'hat':null;return {...state,extras:state.extras.includes(id)?state.extras.filter(x=>x!==id):[...state.extras.filter(x=>x!==remove),id]};}
-export function activeItems(state){return [...(state.outfit==='base'?[state.top,state.bottom].filter(Boolean):[state.outfit]),...state.extras];}
+export function toggleExtra(state,id){if(!EXTRAS.some(x=>x.id===id)||(id==='wrap'&&state.outfit==='floral'))return state;const remove=id==='hat'?'crown':id==='crown'?'hat':null;return {...state,extras:state.extras.includes(id)?state.extras.filter(x=>x!==id):[...state.extras.filter(x=>x!==remove),id]};}
+export function activeItems(state){return [...(state.outfit==='base'?[state.top,state.bottom].filter(Boolean):[state.outfit]),...state.extras.filter(id=>id!=='wrap'||state.outfit!=='floral')];}
 export function lookName(state){return state.outfit!=='base'?OUTFITS.find(x=>x.id===state.outfit).name:[state.top,state.bottom].filter(Boolean).map(id=>ITEMS.find(x=>x.id===id).name).join(' + ')||'Just me';}
-export function thumbnail(id){return './assets/thumbnails/'+(['base','moonlight'].includes(id)?'outfits':'item')+'-'+id+'.png?v=folio-release-3';}
-export function randomLook(state,random=Math.random){const pick=arr=>arr[Math.min(arr.length-1,Math.floor(random()*arr.length))];const dress=pick([null,...DRESSES]);return {...state,outfit:dress?.id||'base',top:dress?null:pick(['stripe','halter','noir']),bottom:dress?null:pick(['shorts','trousers','satin']),extras:random()>.5?[pick(EXTRAS).id]:[]};}
+export function thumbnail(id){return './assets/thumbnails/'+(['base','moonlight'].includes(id)?'outfits':'item')+'-'+id+'.png?v=folio-release-4';}
+export function randomLook(state,random=Math.random){const pick=arr=>arr[Math.min(arr.length-1,Math.floor(random()*arr.length))];const dress=pick([null,...DRESSES]);return {...state,outfit:dress?.id||'base',top:dress?null:pick(['stripe','halter','noir']),bottom:dress?null:pick(['shorts','trousers','satin']),extras:random()>.5?[pick(EXTRAS.filter(x=>x.id!=='wrap'||dress?.id!=='floral')).id]:[]};}
+
+// Every opening starts a fresh dressing session; saved looks remain separate.
+export function openingState(previous){
+ const preferences=sanitizeState(previous);
+ return {...DEFAULT_STATE,extras:[],colors:{},gentle:preferences.gentle,sparkles:preferences.sparkles};
+}

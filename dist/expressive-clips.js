@@ -22,7 +22,9 @@ export function expressiveClips(character,original){
     const next=track.clone();next.times=Float32Array.from(next.times,t=>t/source.duration*duration);tracks.push(next);continue;
    }
    const bone=character.getObjectByName(boneName),frame=bone.getWorldQuaternion(new THREE.Quaternion()),inverse=frame.clone().invert();
-   const cheek=name==='SoLoved'&&/^Arm[LR]$/.test(boneName)?cheekAim[boneName.at(-1)]:null;
+   const side=boneName.at(-1);
+   const heldAim=name==='LittlePose'?(side==='R'?new THREE.Vector3(.30,.58,.68).normalize():new THREE.Vector3(-.86,-.30,.25).normalize()):name==='TaDaPose'?new THREE.Vector3(side==='R'?.82:-.88,side==='R'?.57:.40,.18).normalize():null;
+   const cheek=/^Arm[LR]$/.test(boneName)?(name==='SoLoved'?cheekAim[side]:heldAim):null;
    const parentFrame=cheek?bone.parent.getWorldQuaternion(new THREE.Quaternion()):null;
    const localDirection=cheek?character.getObjectByName('Fin'+boneName.at(-1)).position.clone().normalize():null;
    const sampler=track.createInterpolant(),times=[],values=[],q=new THREE.Quaternion(),delta=new THREE.Quaternion();
@@ -41,7 +43,7 @@ export function expressiveClips(character,original){
      const target=parentFrame.clone().invert().multiply(turn).multiply(parentFrame).multiply(q);
      q.slerp(target,p).normalize();
     }
-    if(name==='SoLoved'&&/^Fin[LR]$/.test(boneName))q.fromArray(sampler.evaluate(t*source.duration)).slerp(bone.quaternion,p).normalize();
+    if(['SoLoved','LittlePose','TaDaPose'].includes(name)&&/^Fin[LR]$/.test(boneName))q.fromArray(sampler.evaluate(t*source.duration)).slerp(bone.quaternion,p).normalize();
     times.push(t*duration);q.toArray(values,values.length);
    }
    tracks.push(new THREE.QuaternionKeyframeTrack(track.name,times,values));
@@ -54,11 +56,11 @@ export function expressiveClips(character,original){
   TailL:(_,e)=>[.16*e,.10*e,.60*e],TailR:(_,e)=>[-.06*e,-.08*e,-.22*e]
  },true);
  make('LittlePose','Idle',12.0333,{
-  Root:(_,e)=>[0,-.23*e,0],Head:(t,e)=>[-.035*e,.12*e,(-.09+.012*Math.sin(t*Math.PI*2))*e],
-  ArmR:(_,e)=>[-.07*e,0,.48*e],FinR:(_,e)=>[0,0,.12*e],ArmL:(_,e)=>[0,0,-.12*e]
+  Root:(_,e)=>[0,-.30*e,.035*e],Head:(t,e)=>[.025*e,.15*e,(-.15+.016*Math.sin(t*Math.PI*2))*e],
+  ArmR:(_,e)=>[-.07*e,0,.48*e],FinR:(_,e)=>[0,0,.12*e],ArmL:(_,e)=>[0,0,-.12*e],FinL:()=>[0,0,0]
  },true);
  make('TaDaPose','Idle',12.0333,{
-  Root:(_,e)=>[0,.13*e,0],Head:(t,e)=>[-.07*e,-.10*e,(.055+.012*Math.sin(t*Math.PI*2))*e],
+  Root:(_,e)=>[0,.23*e,-.035*e],Head:(t,e)=>[-.10*e,-.15*e,(.09+.016*Math.sin(t*Math.PI*2))*e],
   ArmR:(_,e)=>[-.10*e,0,.64*e],FinR:(_,e)=>[0,0,.15*e],ArmL:(_,e)=>[-.04*e,0,-.45*e],FinL:(_,e)=>[0,0,-.10*e]
  },true);
  make('HappyDance','Idle',5.8,{

@@ -1,6 +1,6 @@
 // A live paper folio around the existing wardrobe and WebGL scene.
 const $=s=>document.querySelector(s);
-const icon=name=>name==='shirt'?'<svg class="icon" viewBox="0 0 28 28" aria-hidden="true"><path d="M11 7a3 3 0 1 1 5 2c-1 1-2 1.5-2 3l10 6a2 2 0 0 1-1 4H5a2 2 0 0 1-1-4l10-6"/></svg>':`<svg class="icon" aria-hidden="true"><use href="./assets/icons.svg?v=folio-release-3#${name}"/></svg>`;
+const icon=name=>name==='shirt'?'<svg class="icon" viewBox="0 0 28 28" aria-hidden="true"><path d="M11 7a3 3 0 1 1 5 2c-1 1-2 1.5-2 3l10 6a2 2 0 0 1-1 4H5a2 2 0 0 1-1-4l10-6"/></svg>':`<svg class="icon" aria-hidden="true"><use href="./assets/icons.svg?v=folio-release-4#${name}"/></svg>`;
 const nav=document.createElement('nav');nav.className='destinations';nav.setAttribute('aria-label','Main navigation');
 nav.innerHTML=[['wardrobe','shirt','Wardrobe'],['room','room','Room'],['play','reveal','Play'],['looks','heart','Looks']].map(([id,symbol,label])=>`<button type="button" data-destination="${id}" aria-pressed="${id==='wardrobe'}">${icon(symbol)}<span>${label}</span></button>`).join('');
 $('.topbar').insertBefore(nav,$('.top-actions'));

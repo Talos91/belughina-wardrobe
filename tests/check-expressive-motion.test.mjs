@@ -20,6 +20,11 @@ for(const clip of m.clips.values())assert.equal(new Set(clip.tracks.map(t=>t.nam
 const crossed=g.contacts.map(p=>p.clone());tick(100,0);g.contacts.forEach((p,i)=>assert(p.distanceTo(crossed[i])<.00001,'Paused relaxed pose must not drift'));
 const resting=c.getObjectByName('ArmR').quaternion.clone();
 m.setPose('little');tick(240);assert(resting.angleTo(c.getObjectByName('ArmR').quaternion)>.28,'Little pose must visibly raise the free flipper');
+const littleDirection=()=>c.getObjectByName('FinR').getWorldPosition(new T.Vector3()).sub(c.getObjectByName('ArmR').getWorldPosition(new T.Vector3())).normalize();
+const little= littleDirection();
+m.setPose('tada');tick(240);assert(little.angleTo(littleDirection())>.65,'Little and Ta-da need distinct visible flipper directions');
+c.userData.carryingTote=true;m.setPose('little');tick(240);const carriedLittle=littleDirection();m.setPose('tada');tick(240);assert(carriedLittle.angleTo(littleDirection())>.65,'The tote must not suppress the expressive free flipper');
+c.userData.carryingTote=false;m.setPose('little');
 tick(900);assert.equal(m.selectedPose,'little');assert(m.poseLayers[0].action.getEffectiveWeight()>.99);
 m.play('boop');tick(240);assert.equal(m.current,null);assert.equal(m.layers.length,0);assert(m.poseLayers[0].action.getEffectiveWeight()>.99,'Return to selected pose after nose tap');
 const idleTime=m.idle.time;tick(120);assert.notEqual(m.idle.time,idleTime,'Idle keeps running');
